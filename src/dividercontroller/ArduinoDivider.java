@@ -29,8 +29,8 @@ import jssc.SerialPortException;
  */
 public class ArduinoDivider {
     SerialPort serialPort;
-    
-    private final String DEFAULT_COMM_PORT = "COM3";
+    private final String COMMAND_GET_STATUS = "S";
+
     private enum DividerStatus { WAITING, DOWNLOADING, UPLOADING, RUNNING };
     private enum CommStatus { UP, DOWN };
     
@@ -42,14 +42,18 @@ public class ArduinoDivider {
     }
  
     private void initSerialComm() {
-        Configuration config = Configuration.getConfiguration();
-        serialPort = new SerialPort(config.getComport());
+        ComPortParameters comPortParams = new ComPortParameters();
+        serialPort = new SerialPort(comPortParams.getComPort());
         try {
             serialPort.openPort();
-            serialPort.setParams(SerialPort.BAUDRATE_115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+            serialPort.setParams(comPortParams.getBaudRate(),
+                    comPortParams.getDataBits(), 
+                    comPortParams.getStopBits(),
+                    comPortParams.getParity());
             commStatus = CommStatus.UP;
         } catch (SerialPortException ex) {
-            Logger.getLogger(ArduinoDivider.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getMessage());
+            commStatus = CommStatus.DOWN;
         }
     }
 
@@ -62,7 +66,17 @@ public class ArduinoDivider {
     }
     
     private DividerStatus getDividerStatus() {
+        sendCommand(COMMAND_GET_STATUS);
+        String response = waitForResponse();
         return DividerStatus.WAITING;
+    }
+    
+    private void sendCommand( String command ) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    private String waitForResponse() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

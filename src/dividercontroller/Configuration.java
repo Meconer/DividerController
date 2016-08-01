@@ -19,6 +19,7 @@
 package dividercontroller;
 
 import java.util.prefs.Preferences;
+import jssc.SerialPort;
 
 /**
  *
@@ -27,23 +28,61 @@ import java.util.prefs.Preferences;
 public class Configuration {
     private final String CONFIG_NAME = "se.mecona.dividerController";
     private final String DEFAULT_COMPORT = "COM3";
-    private final String COMPORT_KEY = "ComPort";
-    
-    private final Preferences preferences;
-    private final String comPort;
+    private final String COMPORT_KEY = "CommPort";
+    private final String COMM_BAUDRATE_KEY = "CommBaudRate";
+    private final int DEFAULT_COMM_BAUDRATE = SerialPort.BAUDRATE_115200;
+    private final String COMM_DATABITS_KEY = "CommDataBits";
+    private final int DEFAULT_COMM_DATABITS = SerialPort.DATABITS_8;
+    private final String COMM_STOPBITS_KEY = "CommStopBits";
+    private final int DEFAULT_COMM_STOPBITS = SerialPort.STOPBITS_1;
+    private final String COMM_PARITY_KEY = "CommParity";
+    private final int DEFAULT_COMM_PARITY = SerialPort.PARITY_EVEN;
 
-    private static final Configuration instance = new Configuration();
+    private final Preferences preferences;
+    private final String commPort;
+    private final int commBaudRate;
+    private final int commDataBits;
+    private final int commStopBits;
+    private final int commParity;
+
+    private static final Configuration INSTANCE = new Configuration();
     
     private Configuration() {
         preferences = Preferences.userRoot();
-        comPort = preferences.get(COMPORT_KEY, DEFAULT_COMPORT);
+        commPort = preferences.get(COMPORT_KEY, DEFAULT_COMPORT);
+        commBaudRate = preferences.getInt(COMM_BAUDRATE_KEY, DEFAULT_COMM_BAUDRATE);
+        commDataBits = preferences.getInt(COMM_DATABITS_KEY, DEFAULT_COMM_DATABITS);
+        commStopBits = preferences.getInt(COMM_STOPBITS_KEY, DEFAULT_COMM_STOPBITS);
+        commParity = preferences.getInt(COMM_PARITY_KEY, DEFAULT_COMM_PARITY);
     }
     
     public static Configuration getConfiguration() {
-        return instance;
+        return INSTANCE;
     }
     
     public String getComport() {
-        return comPort;
+        return commPort;
     }
+
+    public String getCommPort() {
+        return commPort;
+    }
+
+    public int getCommBaudRate() {
+        return commBaudRate;
+    }
+
+    public int getCommDataBits() {
+        return commDataBits;
+    }
+
+    public int getCommStopBits() {
+        return commStopBits;
+    }
+
+    public int getCommParity() {
+        return commParity;
+    }
+    
+    
 }
