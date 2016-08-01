@@ -18,6 +18,8 @@
  */
 package dividercontroller;
 
+import static java.lang.Thread.sleep;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jssc.SerialPort;
@@ -28,26 +30,32 @@ import jssc.SerialPortException;
  * @author Mats Andersson <mats.andersson@mecona.se>
  */
 public class ArduinoDivider {
+
     SerialPort serialPort;
     private final String COMMAND_GET_STATUS = "S";
 
-    private enum DividerStatus { WAITING, DOWNLOADING, UPLOADING, RUNNING };
-    private enum CommStatus { UP, DOWN };
-    
+    private enum DividerStatus {
+        WAITING, DOWNLOADING, UPLOADING, RUNNING
+    };
+
+    private enum CommStatus {
+        UP, DOWN
+    };
+
     private CommStatus commStatus = CommStatus.DOWN;
     private double currentPosition = 0;
 
     public ArduinoDivider() {
         initSerialComm();
     }
- 
+
     private void initSerialComm() {
         ComPortParameters comPortParams = new ComPortParameters();
         serialPort = new SerialPort(comPortParams.getComPort());
         try {
             serialPort.openPort();
             serialPort.setParams(comPortParams.getBaudRate(),
-                    comPortParams.getDataBits(), 
+                    comPortParams.getDataBits(),
                     comPortParams.getStopBits(),
                     comPortParams.getParity());
             commStatus = CommStatus.UP;
@@ -60,23 +68,46 @@ public class ArduinoDivider {
     private CommStatus getCommStatus() {
         return commStatus;
     }
-    
+
     private boolean isCommUp() {
         return commStatus == CommStatus.UP;
     }
-    
+
     private DividerStatus getDividerStatus() {
         sendCommand(COMMAND_GET_STATUS);
-        String response = waitForResponse();
+        String response = waitForStatusResponse();
         return DividerStatus.WAITING;
     }
-    
-    private void sendCommand( String command ) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+    private void sendCommand(String command) {
+        if (commStatus == CommStatus.UP) {
+            try {
+                serialPort.writeByte("S".getBytes()[0]);
+            } catch (SerialPortException ex) {
+                System.out.println("serialPort.writeString exception " + ex.getMessage());
+            }
+        }
     }
-    
-    private String waitForResponse() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+    private String waitForStatusResponse() {
+        try {
+            ArrayList<Byte> charArray = new ArrayList<>();
+            while (serialPort.getInputBufferBytesCount() > 0) {
+                byte[] character = serialPort.readBytes(1);
+                
+                if ( character[0] != 0x10 ) {
+                    charArray.add(character[0]);
+                }
+                try {
+                    sleep(100);
+                } catch (InterruptedException ex) {
+                    
+                }
+            }
+        } catch (SerialPortException ex) {
+            System.out.println("serialPort.readBytes exception " + ex.getMessage());
+        }
     }
-    
 }
+
+
