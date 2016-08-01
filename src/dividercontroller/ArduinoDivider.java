@@ -42,7 +42,8 @@ public class ArduinoDivider {
     }
  
     private void initSerialComm() {
-        serialPort = new SerialPort(DEFAULT_COMM_PORT);
+        Configuration config = Configuration.getConfiguration();
+        serialPort = new SerialPort(config.getComport());
         try {
             serialPort.openPort();
             serialPort.setParams(SerialPort.BAUDRATE_115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
