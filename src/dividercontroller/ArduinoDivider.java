@@ -20,19 +20,35 @@ package dividercontroller;
 
 import static java.lang.Thread.sleep;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import jssc.SerialPort;
+import jssc.SerialPortEvent;
+import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
 
 /**
  *
  * @author Mats Andersson <mats.andersson@mecona.se>
  */
-public class ArduinoDivider {
+public class ArduinoDivider implements SerialPortEventListener{
 
     SerialPort serialPort;
+    
+    // Divider commands
     private final String COMMAND_GET_STATUS = "S";
+    
+    // A buffer for the character received from the serial port
+    private final Queue<Integer> serialBuffer = new ConcurrentLinkedQueue<>();
+
+    // Start up serial receiver event listener.
+    private void initSerialReader() {
+        try {
+            serialPort.addEventListener(this);
+        } catch (SerialPortException ex) {
+            System.out.println("SerialPortException " + ex.getMessage());
+        }
+    }
 
     private enum DividerStatus {
         WAITING, DOWNLOADING, UPLOADING, RUNNING
@@ -47,6 +63,7 @@ public class ArduinoDivider {
 
     public ArduinoDivider() {
         initSerialComm();
+        initSerialReader();
     }
 
     private void initSerialComm() {
@@ -89,25 +106,38 @@ public class ArduinoDivider {
         }
     }
 
-    private String waitForStatusResponse() {
+    private void waitForStatusResponse() {
         try {
             ArrayList<Byte> charArray = new ArrayList<>();
             while (serialPort.getInputBufferBytesCount() > 0) {
                 byte[] character = serialPort.readBytes(1);
-                
-                if ( character[0] != 0x10 ) {
+
+                if (character[0] != 0x10) {
                     charArray.add(character[0]);
                 }
                 try {
                     sleep(100);
                 } catch (InterruptedException ex) {
-                    
+
                 }
             }
         } catch (SerialPortException ex) {
             System.out.println("serialPort.readBytes exception " + ex.getMessage());
         }
     }
+
+    @Override
+    public void serialEvent(SerialPortEvent event) {
+        //Object type SerialPortEvent carries information about which event occurred and a value.
+        //For example, if the data came a method event.getEventValue() returns us the number of bytes in the input buffer.
+        if (event.isRXCHAR()) {
+            try {
+                int noOfBytesInBuffer = event.getEventValue();
+                String charactersRead = serialPort.readString(noOfBytesInBuffer);
+                charactersRead.chars().forEach(c -> serialBuffer.add(c));
+            } catch (SerialPortException ex) {
+                System.out.println(ex);
+            }
+        }
+    }
 }
-
-
