@@ -36,7 +36,7 @@ public class Configuration {
     private final String COMM_STOPBITS_KEY = "CommStopBits";
     private final int DEFAULT_COMM_STOPBITS = SerialPort.STOPBITS_1;
     private final String COMM_PARITY_KEY = "CommParity";
-    private final int DEFAULT_COMM_PARITY = SerialPort.PARITY_EVEN;
+    private final int DEFAULT_COMM_PARITY = SerialPort.PARITY_NONE;
 
     private final Preferences preferences;
     private final String commPort;

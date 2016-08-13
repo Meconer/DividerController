@@ -30,6 +30,8 @@ import javafx.stage.Stage;
  */
 public class DividerController extends Application {
     
+    ArduinoDivider arduinoDivider;
+    
     @Override
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
@@ -38,6 +40,7 @@ public class DividerController extends Application {
         
         stage.setScene(scene);
         stage.show();
+        arduinoDivider = new ArduinoDivider();
     }
 
     /**
