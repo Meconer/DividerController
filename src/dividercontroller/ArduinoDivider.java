@@ -64,10 +64,18 @@ public class ArduinoDivider implements SerialPortEventListener {
     SerialPort serialPort;
 
     // Divider commands
-    private final String COMMAND_GET_STATUS = "S";
-    private final String COMMAND_GET_ANGLE = "?";
-    private final String COMMAND_STOP_RUNNING = "Q";
-    private final String COMMAND_GET_VERSION = "V";
+    private final byte COMMAND_DOWNLOAD_PROGRAM = 'D';
+    private final byte COMMAND_UPLOAD_PROGRAM = 'U';
+    private final byte COMMAND_RUN_PROGRAM = 'R';
+    private final byte COMMAND_STEP_PLUS = '+';
+    private final byte COMMAND_STEP_MINUS = '-';
+    private final byte COMMAND_POSITION_TO = 'P';
+    private final byte COMMAND_ZERO_POSITION = 'Z';
+    private final byte COMMAND_GET_STATUS = 'S';
+    private final byte COMMAND_GET_ANGLE = '?';
+    private final byte COMMAND_STOP_RUNNING = 'Q';
+    private final byte COMMAND_GET_VERSION = 'V';
+    
 
     private final int SIZE_OF_BYTE_BUFFER = 50;
     
@@ -92,6 +100,9 @@ public class ArduinoDivider implements SerialPortEventListener {
 
     // The current state
     private CommState currentCommState = CommState.Idle;
+    
+    // Command that is queded to be sent. 0 is no command.
+    private byte commandToBeSent = 0;
 
     // A buffer for the character received from the serial port
     private final Queue<Byte> serialBuffer = new ConcurrentLinkedQueue<>();
@@ -126,7 +137,7 @@ public class ArduinoDivider implements SerialPortEventListener {
         }
     }
 
-    private static int state = 0;
+    
 
     private void initStateMachine() {
         Service stateMachineService = new Service() {
@@ -135,20 +146,19 @@ public class ArduinoDivider implements SerialPortEventListener {
                 return new Task<Void>() {
                     @Override
                     protected Void call() throws Exception {
-                        while (state < 10) {
-                            System.out.println("state=" + state);
-                            if (state == 5) {
-                                sendCommand(COMMAND_STOP_RUNNING);
-                            }
-                            if (state == 6) {
-                                sendCommand(COMMAND_GET_VERSION);
-                            }
-                            state++;
-                            sleep(2000);
+                        switch ( currentCommState ) {
+                            case Idle :
+                                if ( commandToBeSent != 0 ) {
+                                    sendCommand( commandToBeSent );
+                                    currentCommState = CommState.WaitingForResponse;
+                                    responseToWaitFor = commandToBeSent;
+                                }
+                                break;
                         }
+                                    
                         return null;
-
                     }
+
                 };
             }
         };
@@ -185,7 +195,7 @@ public class ArduinoDivider implements SerialPortEventListener {
         return DividerStatus.WaitingForCommand;
     }
 
-    private void sendCommand(String command) {
+    private void sendCommand(byte command) {
         if (commStatus == CommStatus.UP) {
             try {
                 serialPort.writeByte(command.getBytes()[0]);
