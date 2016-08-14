@@ -18,34 +18,51 @@
  */
 package dividercontroller;
 
-import com.google.common.eventbus.EventBus;
-import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
-
 /**
  *
  * @author Mats Andersson <mats.andersson@mecona.se>
  */
-public class DividerController extends Application {
+class ToArduinoMessageEvent {
+
+    public enum Command {
+        DOWNLOAD_FROM_PC,
+        UPLOAD_TO_PC,
+        RUN_PROGRAM,
+        QUIT_PROGRAM,
+        STEP_POSITIVE,
+        STEP_NEGATIVE,
+        POSITION_TO,
+        GET_CURRENT_POSITION,
+        GET_STATUS,
+        ZERO_POSITION,
+        GET_VERSION
+    }
     
-    @Override
-    public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
-        
-        Scene scene = new Scene(root);
-        
-        stage.setScene(scene);
-        stage.show();
+    private Command command;
+    private double value;
+
+    public ToArduinoMessageEvent() {
     }
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        launch(args);
+    public ToArduinoMessageEvent(Command command, double value) {
+        this.command = command;
+        this.value = value;
     }
-    
+
+    public Command getCommand() {
+        return command;
+    }
+
+    public void setCommand(Command command) {
+        this.command = command;
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+    }
+
 }

@@ -18,6 +18,7 @@
  */
 package dividercontroller;
 
+import com.google.common.eventbus.EventBus;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
@@ -33,6 +34,11 @@ import javafx.scene.control.TextField;
  */
 public class FXMLDocumentController implements Initializable {
 
+    
+    private EventBus eventBus;
+    private ArduinoDivider arduinoDivider;
+    
+    
     @FXML
     private Label currPosLabel;
     @FXML
@@ -59,14 +65,12 @@ public class FXMLDocumentController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        //initArduino();
+        eventBus = new EventBus();
+        
+        arduinoDivider = new ArduinoDivider();
+        arduinoDivider.setEventBus( eventBus);
         //initUIControls();
     }    
-
-    // Initializes arduino communication 
-    private void initArduino() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 
     // Setup buttons and labels from Arduino status.
     private void initUIControls() {
@@ -75,5 +79,12 @@ public class FXMLDocumentController implements Initializable {
         // Get the current angular position and show it in the position label
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
+    @FXML
+    private void onStopBtnClicked() {
+       ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.QUIT_PROGRAM, 0);
+       eventBus.post(event);
+       System.out.println("Stop button clicked");
+        
+    }
 }

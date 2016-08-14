@@ -38,7 +38,7 @@
                   <Insets left="10.0" right="10.0" top="25.0" />
                </VBox.margin>
             </Button>
-            <Button fx:id="stopBtn" layoutX="20.0" layoutY="20.0" mnemonicParsing="false" prefHeight="31.0" prefWidth="113.0" text="Stopp">
+            <Button fx:id="stopBtn" layoutX="20.0" layoutY="20.0" mnemonicParsing="false" onAction="#onStopBtnClicked" prefHeight="31.0" prefWidth="113.0" text="Stopp">
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
