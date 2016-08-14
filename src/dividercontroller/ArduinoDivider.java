@@ -88,12 +88,11 @@ public class ArduinoDivider implements SerialPortEventListener {
     private final byte etbChar = 23;
     private final byte eotChar = 27;
 
-    private int threadCounter = 0;
-    private boolean stopThread = false;
-
-    private final byte[] receiveBuffer = new byte[SIZE_OF_BYTE_BUFFER];
+    //private final byte[] receiveBuffer = new byte[SIZE_OF_BYTE_BUFFER];
     private volatile int numBytesInReceiveBuffer = 0;
     private boolean answerReceived = false;
+
+    private final ConcurrentLinkedQueue<Byte> receiveBuffer = new ConcurrentLinkedQueue<>();
 
     /**
      * The different states of the state machine
@@ -191,11 +190,9 @@ public class ArduinoDivider implements SerialPortEventListener {
                                         commandToBeSent = 0;
                                         waitForResponse(responseToWaitFor);
                                     } else // No command. Keep idling. Throw away if anything is received from Arduino
-                                    {
-                                        if (answerReceived) {
+                                     if (answerReceived) {
 
                                         }
-                                    }
                                     break;
                             }
                             sleep(1000);
@@ -207,9 +204,9 @@ public class ArduinoDivider implements SerialPortEventListener {
                     private void waitForResponse(byte responseToWaitFor) {
                         System.out.println("Response to wait for " + responseToWaitFor);
                         boolean gotResponse = false;
-                        while ( !gotResponse ) {
-                            if ( answerReceived ) {
-                                gotResponse = checkReceivedAnswer( responseToWaitFor );
+                        while (!gotResponse) {
+                            if (answerReceived) {
+                                gotResponse = checkReceivedAnswer(responseToWaitFor);
                             }
                             try {
                                 sleep(200);
@@ -220,9 +217,11 @@ public class ArduinoDivider implements SerialPortEventListener {
                     }
 
                     private boolean checkReceivedAnswer(byte responseToWaitFor) {
-                        if ( numBytesInReceiveBuffer >0 ) {
+                        if (!receiveBuffer.isEmpty()) {
                             System.out.println("Got here");
-                            if ( receiveBuffer[ 0 ] == responseToWaitFor ) return true;
+                            if (receiveBuffer.peek() == responseToWaitFor) {
+                                receiveBuffer.remove();
+                            }
                         }
                         return false;
                     }
@@ -282,17 +281,30 @@ public class ArduinoDivider implements SerialPortEventListener {
         if (event.isRXCHAR()) {  // If there are characters recieved
             try {
                 // Get the characters read and add them to our serial buffer
-                int numBytesReceived = event.getEventValue();
-                byte[] b = serialPort.readBytes(numBytesReceived);
-                int startByte = numBytesInReceiveBuffer;
-                int endByte = numBytesReceived + numBytesInReceiveBuffer;
-                for (int i = startByte; i < endByte; i++) {
-                    byte ch = b[i];
-                    if (ch > 30) {
-                        System.out.print(String.valueOf((char) ch));
-                    }
-                    if (ch == etbChar) {
-                        answerReceived = true;
+                while (serialPort.getInputBufferBytesCount() > 0) {
+                    byte readByte = serialPort.readBytes(1)[0];
+
+                    switch (currentCommState) {
+                        case Idle:
+                            if (readByte == 'A') {
+                                currentCommState = CommState.WaitingForAngle;
+                                answerReceived = false;
+                            }
+                            receiveBuffer.clear();
+                            receiveBuffer.add(readByte);
+                            break;
+
+                        case WaitingForAngle:
+                            if (Character.isDigit(readByte) | readByte == '.') {
+                                receiveBuffer.add(readByte);
+                            } else {
+                                answerReceived = true;
+                                currentCommState = CommState.Idle;
+                            }
+                            break;
+
+                        default:
+                            break;
                     }
                 }
 
