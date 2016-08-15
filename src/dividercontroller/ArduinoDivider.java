@@ -69,7 +69,7 @@ public class ArduinoDivider implements SerialPortEventListener {
     SerialPort serialPort;
 
     EventBus eventBus;
-
+    private final int RESPONSE_TIMEOUT = 3000;
     // Divider commands
     private final byte COMMAND_DOWNLOAD_PROGRAM = 'D';
     private final byte COMMAND_UPLOAD_PROGRAM = 'U';
@@ -169,12 +169,14 @@ public class ArduinoDivider implements SerialPortEventListener {
 
     }
 
+    private byte responseToWaitFor;
+    boolean gotResponse = false;
+
     private void initStateMachine() {
         Service stateMachineService = new Service() {
             @Override
             protected Task createTask() {
                 return new Task<Void>() {
-                    private byte responseToWaitFor;
                     private boolean threadRun = true;
 
                     @Override
@@ -203,15 +205,22 @@ public class ArduinoDivider implements SerialPortEventListener {
 
                     private void waitForResponse(byte responseToWaitFor) {
                         System.out.println("Response to wait for " + responseToWaitFor);
-                        boolean gotResponse = false;
-                        while (!gotResponse) {
+                        long timeOutTime = System.currentTimeMillis() + RESPONSE_TIMEOUT;
+                        System.out.println("timeOutTime " + timeOutTime);
+                        boolean timeOut = false;
+                        while (!gotResponse && !timeOut) {
                             if (answerReceived) {
                                 gotResponse = checkReceivedAnswer(responseToWaitFor);
+                            }
+                            if ( System.currentTimeMillis() > timeOutTime ) {
+                                System.out.println("Timeout");
+                                currentCommState = CommState.Idle;
+                                timeOut = true;
                             }
                             try {
                                 sleep(200);
                             } catch (InterruptedException ex) {
-                                System.out.println("waitForResponse interrupted after sleep");
+                                
                             }
                         }
                     }
@@ -283,12 +292,25 @@ public class ArduinoDivider implements SerialPortEventListener {
                 // Get the characters read and add them to our serial buffer
                 while (serialPort.getInputBufferBytesCount() > 0) {
                     byte readByte = serialPort.readBytes(1)[0];
+                    System.out.println("Received :" + String.valueOf((char) readByte) + readByte);
 
+                    System.out.println("Commstate " + currentCommState);
                     switch (currentCommState) {
                         case Idle:
                             if (readByte == 'A') {
                                 currentCommState = CommState.WaitingForAngle;
                                 answerReceived = false;
+                                System.out.println("A received");
+                            }
+                            if (readByte == 'Q') {
+                                currentCommState = CommState.Idle;
+                                answerReceived = true;
+                                System.out.println("Q received");
+                            }
+                            if (readByte == 'S') {
+                                currentCommState = CommState.WaitingForStatus;
+                                answerReceived = true;
+                                System.out.println("S received");
                             }
                             receiveBuffer.clear();
                             receiveBuffer.add(readByte);
@@ -302,6 +324,12 @@ public class ArduinoDivider implements SerialPortEventListener {
                                 currentCommState = CommState.Idle;
                             }
                             break;
+
+                        case WaitingForResponse:
+                            if (readByte == responseToWaitFor) {
+                                currentCommState = CommState.Idle;
+                                gotResponse = true;
+                            }
 
                         default:
                             break;
