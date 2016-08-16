@@ -64,9 +64,9 @@ import java.util.logging.Logger;
  * This is handled in this class with a state machine that has different states
  * as follows.
  */
-public class ArduinoDivider implements SerialPortEventListener {
+public class ArduinoDivider {
 
-    SerialPort serialPort;
+    SerialCommHandler serialCommHandler;
 
     EventBus eventBus;
     private final int RESPONSE_TIMEOUT = 3000;
@@ -83,16 +83,6 @@ public class ArduinoDivider implements SerialPortEventListener {
     private final byte COMMAND_STOP_RUNNING = 'Q';
     private final byte COMMAND_GET_VERSION = 'V';
 
-    private final int SIZE_OF_BYTE_BUFFER = 50;
-
-    private final byte etbChar = 23;
-    private final byte eotChar = 27;
-
-    //private final byte[] receiveBuffer = new byte[SIZE_OF_BYTE_BUFFER];
-    private volatile int numBytesInReceiveBuffer = 0;
-    private boolean answerReceived = false;
-
-    private final ConcurrentLinkedQueue<Byte> receiveBuffer = new ConcurrentLinkedQueue<>();
 
     /**
      * The different states of the state machine
@@ -112,12 +102,6 @@ public class ArduinoDivider implements SerialPortEventListener {
     // Command that is queded to be sent. 0 is no command.
     private byte commandToBeSent = 0;
 
-    private enum CommStatus {
-        UP, DOWN
-    };
-
-    private CommStatus commStatus = CommStatus.DOWN;
-
     private enum DividerStatus {
         WaitingForCommand, RunningProgram
     };
@@ -125,12 +109,8 @@ public class ArduinoDivider implements SerialPortEventListener {
     private double currentPosition = 0;
 
     public ArduinoDivider() {
-        // Init serial comm parameters.
-        initSerialComm();
-        // Start serial communication thread
-        initSerialReader();
-        // Start up state machine thread
-        initStateMachine();
+         initStateMachine();
+         serialCommHandler = new SerialCommHandler();
 
     }
 
@@ -156,15 +136,6 @@ public class ArduinoDivider implements SerialPortEventListener {
 
     }
 
-    // Start up serial receiver event listener.
-    private void initSerialReader() {
-        try {
-            serialPort.addEventListener(this);
-        } catch (SerialPortException ex) {
-            System.out.println("SerialPortException " + ex.getMessage());
-        }
-    }
-
     private synchronized void emptyReceiveBuffer() {
 
     }
@@ -186,7 +157,7 @@ public class ArduinoDivider implements SerialPortEventListener {
                                 case Idle:
                                     if (commandToBeSent != 0) {  // There is a command to be sent to Arduino
                                         System.out.println("Command to be sent " + commandToBeSent);
-                                        sendCommand(commandToBeSent);
+                                        serialCommHandler.sendCommand(commandToBeSent);
                                         currentCommState = CommState.WaitingForResponse;
                                         responseToWaitFor = commandToBeSent;
                                         commandToBeSent = 0;
@@ -242,103 +213,10 @@ public class ArduinoDivider implements SerialPortEventListener {
         stateMachineService.start();
     }
 
-    private void initSerialComm() {
-        ComPortParameters comPortParams = new ComPortParameters();
-        serialPort = new SerialPort(comPortParams.getComPort());
-        try {
-            serialPort.openPort();
-            serialPort.setParams(comPortParams.getBaudRate(),
-                    comPortParams.getDataBits(),
-                    comPortParams.getStopBits(),
-                    comPortParams.getParity());
-            commStatus = CommStatus.UP;
-        } catch (SerialPortException ex) {
-            System.out.println(ex.getMessage());
-            commStatus = CommStatus.DOWN;
-        }
-    }
-
-    private CommStatus getCommStatus() {
-        return commStatus;
-    }
-
-    private boolean isCommUp() {
-        return commStatus == CommStatus.UP;
-    }
-
     private DividerStatus getDividerStatus() {
         sendCommand(COMMAND_GET_STATUS);
         //String response = waitForStatusResponse();
         return DividerStatus.WaitingForCommand;
     }
 
-    private void sendCommand(byte command) {
-        if (commStatus == CommStatus.UP) {
-            try {
-                serialPort.writeByte(command);
-            } catch (SerialPortException ex) {
-                System.out.println("serialPort.writeString exception " + ex.getMessage());
-            }
-        }
-    }
-
-    @Override
-    public void serialEvent(SerialPortEvent event) {
-        //Object type SerialPortEvent carries information about which event occurred and a value.
-        //For example, if the data came a method event.getEventValue() returns us the number of bytes in the input buffer.
-
-        if (event.isRXCHAR()) {  // If there are characters recieved
-            try {
-                // Get the characters read and add them to our serial buffer
-                while (serialPort.getInputBufferBytesCount() > 0) {
-                    byte readByte = serialPort.readBytes(1)[0];
-                    System.out.println("Received :" + String.valueOf((char) readByte) + readByte);
-
-                    System.out.println("Commstate " + currentCommState);
-                    switch (currentCommState) {
-                        case Idle:
-                            if (readByte == 'A') {
-                                currentCommState = CommState.WaitingForAngle;
-                                answerReceived = false;
-                                System.out.println("A received");
-                            }
-                            if (readByte == 'Q') {
-                                currentCommState = CommState.Idle;
-                                answerReceived = true;
-                                System.out.println("Q received");
-                            }
-                            if (readByte == 'S') {
-                                currentCommState = CommState.WaitingForStatus;
-                                answerReceived = true;
-                                System.out.println("S received");
-                            }
-                            receiveBuffer.clear();
-                            receiveBuffer.add(readByte);
-                            break;
-
-                        case WaitingForAngle:
-                            if (Character.isDigit(readByte) | readByte == '.') {
-                                receiveBuffer.add(readByte);
-                            } else {
-                                answerReceived = true;
-                                currentCommState = CommState.Idle;
-                            }
-                            break;
-
-                        case WaitingForResponse:
-                            if (readByte == responseToWaitFor) {
-                                currentCommState = CommState.Idle;
-                                gotResponse = true;
-                            }
-
-                        default:
-                            break;
-                    }
-                }
-
-            } catch (SerialPortException ex) {
-                System.out.println(ex);
-            }
-        }
-    }
 }
