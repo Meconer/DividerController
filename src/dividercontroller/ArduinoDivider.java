@@ -57,6 +57,7 @@ import static java.lang.Thread.sleep;
 public class ArduinoDivider {
 
     SerialCommHandler serialCommHandler;
+    
 
     EventBus eventBus;
     private final int RESPONSE_TIMEOUT = 3000;
