@@ -84,7 +84,7 @@ public class FXMLDocumentController implements Initializable {
     private void onStopBtnClicked() {
        ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.QUIT_PROGRAM, 0);
        eventBus.post(event);
-       System.out.println("Stop button clicked");
+       
         
     }
 }

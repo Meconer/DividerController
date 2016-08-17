@@ -18,6 +18,7 @@
  */
 package dividercontroller;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -30,10 +31,14 @@ import jssc.SerialPortException;
 public class SerialCommHandler implements SerialPortEventListener {
     
     SerialPort serialPort;
-    private final int SIZE_OF_BYTE_BUFFER = 50;
+    private final int SIZE_OF_RECEIVE_BUFFER = 50;
+    private int numBytesInBuffer = 0;
 
     private final byte etbChar = 23;
-    private final byte eotChar = 27;
+    private final byte eofChar = 27;
+    
+    private byte[] receiveBuffer = new byte[SIZE_OF_RECEIVE_BUFFER];
+    private ConcurrentLinkedQueue<String> messageQueue = new ConcurrentLinkedQueue();
 
     private enum CommStatus {
         UP, DOWN
@@ -85,11 +90,35 @@ public class SerialCommHandler implements SerialPortEventListener {
 
         if (event.isRXCHAR()) {  // If there are characters recieved
             try {
-                // Get the characters read and add them to our serial buffer
+                // Get the characters read and add them to our serial buffer. When an etbChar (chr 23) comes we will
+                // make a string of it and put it in a queue.
                 while (serialPort.getInputBufferBytesCount() > 0) {
                     byte readByte = serialPort.readBytes(1)[0];
-                    System.out.println("Received :" + String.valueOf((char) readByte) + readByte);
-
+                    //System.out.println("Received :" + String.valueOf((char) readByte) + readByte);
+                    
+                    // etb received. Convert the buffer to a string and put it in the answer queue.
+                    if ( readByte == etbChar ) {
+                        if ( numBytesInBuffer > 0 ) {
+                            StringBuilder sb = new StringBuilder();
+                            for ( int i = 0 ; i < numBytesInBuffer ; i++ ) {
+                                byte rb = receiveBuffer[i];
+                                switch (rb) {
+                                    case eofChar : break;
+                                    case 13 : break;
+                                    case 10 : break;
+                                    default : 
+                                        sb.append( (char) receiveBuffer[i]);
+                                        break;
+                                }
+                            }
+                            messageQueue.add(sb.toString());
+                            numBytesInBuffer = 0;
+                            System.out.println("Message added: " + sb);
+                        }
+                    } else {
+                        receiveBuffer[numBytesInBuffer] = readByte;
+                        numBytesInBuffer++;
+                    }
                 }
 
             } catch (SerialPortException ex) {
@@ -106,6 +135,10 @@ public class SerialCommHandler implements SerialPortEventListener {
                 System.out.println("serialPort.writeString exception " + ex.getMessage());
             }
         }
+    }
+
+    public String getMessageFromReceiveQueue() {
+        return messageQueue.poll();
     }
 
     
