@@ -19,6 +19,7 @@
 package dividercontroller;
 
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
@@ -34,11 +35,9 @@ import javafx.scene.control.TextField;
  */
 public class FXMLDocumentController implements Initializable {
 
-    
     private EventBus eventBus;
     private ArduinoDivider arduinoDivider;
-    
-    
+
     @FXML
     private Label currPosLabel;
     @FXML
@@ -61,34 +60,101 @@ public class FXMLDocumentController implements Initializable {
     private TextField positionTxtFld;
     @FXML
     private Button positionBtn;
-    
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         eventBus = new EventBus();
-        
+
         arduinoDivider = new ArduinoDivider();
-        arduinoDivider.setEventBus( eventBus);
-        //initUIControls();
-    }    
+        arduinoDivider.startSerial();
+        arduinoDivider.setEventBus(eventBus);
+        eventBus.register(this);
+    }
 
     // Setup buttons and labels from Arduino status.
-    private void initUIControls() {
-        // If it is running a program, enable the start button and disable everything else
-        // If it is not running a program, disable the start button and enable everything else
+    private void enableOrDisableUIControls(ArduinoDivider.DividerStatus dividerStatus) {
+        switch (dividerStatus) {
+            case RunningProgram:
+                // If it is running a program, enable the start button and disable everything else
+                setControlsForRunningProgram();
+                break;
+
+            case WaitingForCommand:
+                // If it is not running a program, disable the start button and enable everything else
+                setControlsForHaltedProgram();
+                break;
+
+            case Unknown:
+                // Unknown. Enable all controls
+                enableAllControls();
+                break;
+
+            default:
+                System.out.println("Impossible error");
+                break;
+
+        }
         // Get the current angular position and show it in the position label
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
     }
 
     @FXML
     private void onStopBtnClicked() {
-       ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.QUIT_PROGRAM, 0);
-       eventBus.post(event);
-       
-        
+        ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.QUIT_PROGRAM, 0);
+        eventBus.post(event);
+
+    }
+
+    @Subscribe
+    private void handleEventBusEvent(FromArduinoMessageEvent event) {
+        switch (event.getCommand()) {
+            case COMMUNICATION_STARTED:
+                // Get Arduino status
+                eventBus.post(new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.GET_STATUS, 0));
+                break;
+
+            case PROGRAM_QUITTED:
+                stopBtn.setDisable(true);
+                break;
+
+            case GOT_STATUS:
+                System.out.println("got event " +  event.getMessage());
+                enableOrDisableUIControls(arduinoDivider.getDividerStatus());
+                break;
+                
+            default:
+                break;
+        }
     }
 
     void stopThreads() {
         arduinoDivider.stopThreads();
+    }
+
+    private void setControlsForRunningProgram() {
+        runBtn.setDisable(true);
+        stopBtn.setDisable(false);
+        sendBtn.setDisable(true);
+        loadBtn.setDisable(true);
+        positionBtn.setDisable(true);
+        setZeroBtn.setDisable(true);
+    }
+
+    private void setControlsForHaltedProgram() {
+        runBtn.setDisable(true);
+        stopBtn.setDisable(false);
+        sendBtn.setDisable(false);
+        loadBtn.setDisable(false);
+        positionBtn.setDisable(false);
+        setZeroBtn.setDisable(false);
+    }
+
+    private void enableAllControls() {
+        runBtn.setDisable(false);
+        stopBtn.setDisable(false);
+        sendBtn.setDisable(false);
+        loadBtn.setDisable(false);
+        positionBtn.setDisable(false);
+        setZeroBtn.setDisable(false);
     }
 }

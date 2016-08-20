@@ -18,6 +18,7 @@
  */
 package dividercontroller;
 
+import com.google.common.eventbus.EventBus;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
@@ -41,6 +42,7 @@ public class SerialCommHandler implements SerialPortEventListener {
     
     private final byte[] receiveBuffer = new byte[SIZE_OF_RECEIVE_BUFFER];
     private final ConcurrentLinkedQueue<String> messageQueue = new ConcurrentLinkedQueue();
+    private EventBus eventBus;
 
     private enum CommStatus {
         UP, DOWN
@@ -52,10 +54,16 @@ public class SerialCommHandler implements SerialPortEventListener {
         
        // Init serial comm parameters.
         initSerialComm();
-        // Start serial communication thread
+    }
+    
+    public void startReader() {         // Start serial communication thread
         initSerialReader();
-        // Start up state machine thread
-        
+    }
+
+
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+        eventBus.register(this);
     }
 
 

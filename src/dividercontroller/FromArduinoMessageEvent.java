@@ -24,18 +24,23 @@ package dividercontroller;
  */
 class FromArduinoMessageEvent {
 
+    MessageType getCommand() {
+        return messageType;
+    }
+
     public enum MessageType {
         DOWNLOAD_FROM_PC,
         UPLOAD_TO_PC,
         RUN_PROGRAM,
-        QUIT_PROGRAM,
+        PROGRAM_QUITTED,
         STEP_POSITIVE,
         STEP_NEGATIVE,
         POSITION_TO,
         GET_CURRENT_POSITION,
-        GET_STATUS,
+        GOT_STATUS,
         ZERO_POSITION,
-        GET_VERSION
+        GET_VERSION,
+        COMMUNICATION_STARTED
     }
     
     private MessageType messageType;
