@@ -20,21 +20,25 @@ package dividercontroller;
 
 import com.google.common.eventbus.EventBus;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 /**
  *
  * @author Mats Andersson <mats.andersson@mecona.se>
  */
 public class DividerController extends Application {
-    
+    FXMLDocumentController controller;
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("FXMLDocument.fxml"));
-        
+        FXMLLoader loader = new FXMLLoader();
+        Parent root = loader.load(getClass().getResource("FXMLDocument.fxml"));
+        controller = (FXMLDocumentController) loader.getController();
         Scene scene = new Scene(root);
         
         stage.setScene(scene);

@@ -24,6 +24,7 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import static java.lang.Thread.sleep;
 import static java.lang.Thread.sleep;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
@@ -75,6 +76,10 @@ public class ArduinoDivider {
     private final byte COMMAND_STOP_RUNNING = 'Q';
     private final byte COMMAND_GET_VERSION = 'V';
 
+    private String byteToString(byte commandToBeSent) {
+        return new String(new byte[]{ (byte)0x63 }, StandardCharsets.US_ASCII);
+    }
+
 
     /**
      * The different states of the state machine
@@ -103,7 +108,8 @@ public class ArduinoDivider {
     private DividerStatus dividerStatus = DividerStatus.Unknown;
 
     private double currentPosition = 0;
-
+    private boolean threadRun = true;
+    
     public ArduinoDivider() {
          serialCommHandler = new SerialCommHandler();
          initStateMachine();
@@ -128,8 +134,42 @@ public class ArduinoDivider {
 
     private void sendStopCommand() {
         commandToBeSent = COMMAND_STOP_RUNNING;
-        System.out.println("Stop Running");
+        serialCommHandler.sendCommand(commandToBeSent);
+        
+        System.out.println("Stop Running sent");
+        String commandToWaitFor = byteToString( commandToBeSent );
+        waitForResponse(commandToWaitFor, DEFAULT_TIMEOUT);
+    }
+    private static final int DEFAULT_TIMEOUT = 5000;
 
+    private void waitForResponse(String commandToWaitFor, int timeOut) {
+        Service waitForStopCommand = new Service() {
+            @Override
+            protected Task createTask() {
+                return new Task<Void>( ) {
+                    @Override
+                    protected Void call() throws Exception {
+                        
+                        long timeoutTime = System.currentTimeMillis() + timeOut;
+                        boolean gotResponse = false;
+
+                        while ( System.currentTimeMillis() < timeoutTime &! gotResponse  ) {
+                            String message = serialCommHandler.getMessageFromReceiveQueue();
+                        
+                            if ( message != null ) {
+                                if ( message.equals(commandToWaitFor)) gotResponse = true;
+                                System.out.println("Received " + commandToWaitFor);
+                            }
+                            
+                        }
+                        if (!gotResponse) System.out.println("Timeout");
+                        return null;
+                    }
+                } ;
+                    
+            }
+        };
+        waitForStopCommand.start();
     }
 
     private void initStateMachine() {
@@ -137,7 +177,6 @@ public class ArduinoDivider {
             @Override
             protected Task createTask() {
                 return new Task<Void>() {
-                    private boolean threadRun = true;
                     char responseToWaitFor;
 
                     @Override
@@ -198,13 +237,17 @@ public class ArduinoDivider {
                 };
             }
         };
-        System.out.println("Starting state machine");
-        stateMachineService.start();
+        //System.out.println("Starting state machine");
+        //stateMachineService.start();
     }
 
     private DividerStatus getDividerStatus() {
         //String response = waitForStatusResponse();
-        return DividerStatus.WaitingForCommand;
+        return dividerStatus;
+    }
+
+    void stopThreads() {
+        threadRun = false;
     }
 
 }

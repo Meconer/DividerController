@@ -87,4 +87,8 @@ public class FXMLDocumentController implements Initializable {
        
         
     }
+
+    void stopThreads() {
+        arduinoDivider.stopThreads();
+    }
 }

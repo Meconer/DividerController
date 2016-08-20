@@ -34,11 +34,13 @@ public class SerialCommHandler implements SerialPortEventListener {
     private final int SIZE_OF_RECEIVE_BUFFER = 50;
     private int numBytesInBuffer = 0;
 
-    private final byte etbChar = 23;
-    private final byte eofChar = 27;
+    private final byte ETB_CHAR = 23;
+    private final byte EOF_CHAR = 27;
+    private static final int LF_CHAR = 10;
+    private static final int CR_CHAR = 13;
     
-    private byte[] receiveBuffer = new byte[SIZE_OF_RECEIVE_BUFFER];
-    private ConcurrentLinkedQueue<String> messageQueue = new ConcurrentLinkedQueue();
+    private final byte[] receiveBuffer = new byte[SIZE_OF_RECEIVE_BUFFER];
+    private final ConcurrentLinkedQueue<String> messageQueue = new ConcurrentLinkedQueue();
 
     private enum CommStatus {
         UP, DOWN
@@ -97,15 +99,15 @@ public class SerialCommHandler implements SerialPortEventListener {
                     //System.out.println("Received :" + String.valueOf((char) readByte) + readByte);
                     
                     // etb received. Convert the buffer to a string and put it in the answer queue.
-                    if ( readByte == etbChar ) {
+                    if ( readByte == ETB_CHAR ) {
                         if ( numBytesInBuffer > 0 ) {
                             StringBuilder sb = new StringBuilder();
                             for ( int i = 0 ; i < numBytesInBuffer ; i++ ) {
                                 byte rb = receiveBuffer[i];
                                 switch (rb) {
-                                    case eofChar : break;
-                                    case 13 : break;
-                                    case 10 : break;
+                                    case EOF_CHAR : break;
+                                    case CR_CHAR : break;
+                                    case LF_CHAR : break;
                                     default : 
                                         sb.append( (char) receiveBuffer[i]);
                                         break;
@@ -126,7 +128,6 @@ public class SerialCommHandler implements SerialPortEventListener {
             }
         }
     }
-    
     public void sendCommand(byte command) {
         if (commStatus == CommStatus.UP) {
             try {
