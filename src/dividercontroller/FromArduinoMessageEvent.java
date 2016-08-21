@@ -31,8 +31,8 @@ class FromArduinoMessageEvent {
     public enum MessageType {
         DOWNLOAD_FROM_PC,
         UPLOAD_TO_PC,
-        RUN_PROGRAM,
-        PROGRAM_QUITTED,
+        PROGRAM_IS_RUNNING,
+        PROGRAM_IS_HALTED,
         STEP_POSITIVE,
         STEP_NEGATIVE,
         POSITION_TO,
@@ -40,7 +40,7 @@ class FromArduinoMessageEvent {
         GOT_STATUS,
         ZERO_POSITION,
         GET_VERSION,
-        COMMUNICATION_STARTED
+        COMMUNICATION_STARTED,
     }
     
     private MessageType messageType;

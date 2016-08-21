@@ -116,6 +116,7 @@ public class SerialCommHandler implements SerialPortEventListener {
                                     case EOF_CHAR : break;
                                     case CR_CHAR : break;
                                     case LF_CHAR : break;
+                                    case ETB_CHAR : break;
                                     default : 
                                         sb.append( (char) receiveBuffer[i]);
                                         break;

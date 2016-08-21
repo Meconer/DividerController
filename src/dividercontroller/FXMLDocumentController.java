@@ -113,8 +113,14 @@ public class FXMLDocumentController implements Initializable {
                 eventBus.post(new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.GET_STATUS, 0));
                 break;
 
-            case PROGRAM_QUITTED:
-                stopBtn.setDisable(true);
+            case PROGRAM_IS_HALTED:
+                System.out.println("Got event Program is halted");
+                setControlsForHaltedProgram();
+                break;
+
+            case PROGRAM_IS_RUNNING:
+                System.out.println("Got event Program is running");
+                setControlsForRunningProgram();
                 break;
 
             case GOT_STATUS:
