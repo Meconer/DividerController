@@ -136,10 +136,10 @@ public class SerialCommHandler implements SerialPortEventListener {
             }
         }
     }
-    public void sendCommand(byte command) {
+    public void sendCommand(char commandChar) {
         if (commStatus == CommStatus.UP) {
             try {
-                serialPort.writeByte(command);
+                serialPort.writeByte((byte) commandChar);
             } catch (SerialPortException ex) {
                 System.out.println("serialPort.writeString exception " + ex.getMessage());
             }

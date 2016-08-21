@@ -22,17 +22,9 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import static java.lang.Thread.sleep;
-import static java.lang.Thread.sleep;
 import java.nio.charset.StandardCharsets;
 import static java.lang.Thread.sleep;
-import static java.lang.Thread.sleep;
-import static java.lang.Thread.sleep;
-import static java.lang.Thread.sleep;
-import static java.lang.Thread.sleep;
-import static java.lang.Thread.sleep;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  *
@@ -71,18 +63,6 @@ public class ArduinoDivider {
 
     EventBus eventBus;
     private final int RESPONSE_TIMEOUT = 3000;
-    // Divider commands
-    private final byte COMMAND_DOWNLOAD_PROGRAM = 'D';
-    private final byte COMMAND_UPLOAD_PROGRAM = 'U';
-    private final byte COMMAND_RUN_PROGRAM = 'R';
-    private final byte COMMAND_STEP_PLUS = '+';
-    private final byte COMMAND_STEP_MINUS = '-';
-    private final byte COMMAND_POSITION_TO = 'P';
-    private final byte COMMAND_ZERO_POSITION = 'Z';
-    private final byte COMMAND_GET_STATUS = 'S';
-    private final byte COMMAND_GET_ANGLE = '?';
-    private final byte COMMAND_STOP_RUNNING = 'Q';
-    private final byte COMMAND_GET_VERSION = 'V';
     private final long DELAY_BEFORE_GETTING_FIRST_STATUS = 3000;
 
     /**
@@ -103,6 +83,8 @@ public class ArduinoDivider {
     private CommState currentCommState = CommState.StartingUp;
     // Command that is queded to be sent. 0 is no command.
     private byte commandToBeSent = 0;
+    
+    private final ConcurrentLinkedQueue<CommandToDivider> commandSendQueue = new ConcurrentLinkedQueue<>();
 
     public enum DividerStatus {
         Unknown, 
@@ -113,20 +95,20 @@ public class ArduinoDivider {
     private DividerStatus dividerStatus = DividerStatus.Unknown;
 
     
-    private long startUpTime;
+    private long timeToGetFirstStatus;
     private double currentPosition = 0;
     private boolean threadRun = true;
     
     
     public ArduinoDivider() {
          serialCommHandler = new SerialCommHandler();
-         
-         initStateMachine();
+         sendGetStatusCommand();
+         initCommandSender();
     }
 
     void startSerial() {
         serialCommHandler.startReader();
-        startUpTime = System.currentTimeMillis() + DELAY_BEFORE_GETTING_FIRST_STATUS;
+        timeToGetFirstStatus = System.currentTimeMillis() + DELAY_BEFORE_GETTING_FIRST_STATUS;
     }
 
     @Subscribe
@@ -156,8 +138,7 @@ public class ArduinoDivider {
 
 
     private void sendStopCommand() {
-        commandToBeSent = COMMAND_STOP_RUNNING;
-        serialCommHandler.sendCommand(commandToBeSent);
+        commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.STOP_RUNNING));
         
         System.out.println("Stop Running sent");
         String responseToWaitFor = byteToString( commandToBeSent );
@@ -166,8 +147,7 @@ public class ArduinoDivider {
     
     
     private void sendGetStatusCommand() {
-        commandToBeSent = COMMAND_GET_STATUS;
-        serialCommHandler.sendCommand(commandToBeSent);
+        commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.GET_STATUS));
         System.out.println("GET_STATUS sent");
         waitForResponse(byteToString(commandToBeSent), DEFAULT_TIMEOUT, new FromArduinoMessageEvent(FromArduinoMessageEvent.MessageType.GOT_STATUS, 0));
     }
@@ -208,8 +188,8 @@ public class ArduinoDivider {
         waitForStopCommand.start();
     }
 
-    private void initStateMachine() {
-        Service stateMachineService = new Service() {
+    private void initCommandSender() {
+        Service commandSenderService = new Service() {
             @Override
             protected Task createTask() {
                 return new Task<Void>() {
@@ -222,22 +202,26 @@ public class ArduinoDivider {
                             switch (currentCommState) {
                                 case StartingUp:
                                     long now = System.currentTimeMillis();
-                                    if ( now > startUpTime ) {
+                                    if ( now > timeToGetFirstStatus ) {
                                         System.out.println("Startuptime");
                                         eventBus.post(new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.GET_STATUS, 0));
                                         waitForResponse(byteToString(commandToBeSent), DEFAULT_TIMEOUT, new FromArduinoMessageEvent(FromArduinoMessageEvent.MessageType.GOT_STATUS,0));
                                         currentCommState = CommState.Idle;
                                     }
                                 case Idle:
-                                    if (commandToBeSent != 0) {  // There is a command to be sent to Arduino
-                                        System.out.println("Command to be sent " + commandToBeSent);
-                                        serialCommHandler.sendCommand(commandToBeSent);
-                                        currentCommState = CommState.WaitingForResponse;
-                                        responseToWaitFor = (char) commandToBeSent;
-                                        commandToBeSent = 0;
-                                    } else {
-                                        checkReceiveQueue();
+                                    CommandToDivider command = commandSendQueue.poll();
+                                    if ( command != null ) {
+                                        serialCommHandler.sendCommand(command.getCommandChar());
                                     }
+//                                    if (commandToBeSent != 0) {  // There is a command to be sent to Arduino
+//                                        System.out.println("Command to be sent " + commandToBeSent);
+//                                        serialCommHandler.sendCommand(commandToBeSent);
+//                                        currentCommState = CommState.WaitingForResponse;
+//                                        responseToWaitFor = (char) commandToBeSent;
+//                                        commandToBeSent = 0;
+//                                    } else {
+//                                        checkReceiveQueue();
+//                                    }
                                     break;
                                 case WaitingForResponse:
                                     checkReceiveQueue();
@@ -282,7 +266,7 @@ public class ArduinoDivider {
             }
         };
         System.out.println("Starting state machine");
-        stateMachineService.start();
+        commandSenderService.start();
     }
 
     public DividerStatus getDividerStatus() {
