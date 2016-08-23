@@ -51,6 +51,7 @@ public class CommandToDivider {
     }
     
     private DividerCommand command;
+    private double value;
 
     public char getCommandChar() {
         return command.commandChar;
@@ -59,6 +60,19 @@ public class CommandToDivider {
     public CommandToDivider(DividerCommand command) {
         this.command = command;
     }
+
+    public double getValue() {
+        return value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+    }
+
+    public DividerCommand getCommand() {
+        return command;
+    }
+    
     
     
 }

@@ -19,7 +19,10 @@
 package dividercontroller;
 
 import com.google.common.eventbus.EventBus;
+import java.text.DecimalFormat;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -30,7 +33,7 @@ import jssc.SerialPortException;
  * @author Mats Andersson <mats.andersson@mecona.se>
  */
 public class SerialCommHandler implements SerialPortEventListener {
-    
+
     SerialPort serialPort;
     private final int SIZE_OF_RECEIVE_BUFFER = 50;
     private int numBytesInBuffer = 0;
@@ -39,7 +42,7 @@ public class SerialCommHandler implements SerialPortEventListener {
     private final byte EOF_CHAR = 27;
     private static final int LF_CHAR = 10;
     private static final int CR_CHAR = 13;
-    
+
     private final byte[] receiveBuffer = new byte[SIZE_OF_RECEIVE_BUFFER];
     private final ConcurrentLinkedQueue<String> messageQueue = new ConcurrentLinkedQueue();
     private EventBus eventBus;
@@ -51,21 +54,19 @@ public class SerialCommHandler implements SerialPortEventListener {
     private CommStatus commStatus = CommStatus.DOWN;
 
     public SerialCommHandler() {
-        
-       // Init serial comm parameters.
+
+        // Init serial comm parameters.
         initSerialComm();
     }
-    
+
     public void startReader() {         // Start serial communication thread
         initSerialReader();
     }
-
 
     public void setEventBus(EventBus eventBus) {
         this.eventBus = eventBus;
         eventBus.register(this);
     }
-
 
     private void initSerialComm() {
         ComPortParameters comPortParams = new ComPortParameters();
@@ -83,7 +84,6 @@ public class SerialCommHandler implements SerialPortEventListener {
         }
     }
 
-    
     // Start up serial receiver event listener.
     private void initSerialReader() {
         try {
@@ -105,20 +105,24 @@ public class SerialCommHandler implements SerialPortEventListener {
                 while (serialPort.getInputBufferBytesCount() > 0) {
                     byte readByte = serialPort.readBytes(1)[0];
                     //System.out.println("Received :" + String.valueOf((char) readByte) + readByte);
-                    
+
                     // etb received. Convert the buffer to a string and put it in the answer queue.
-                    if ( readByte == ETB_CHAR ) {
-                        if ( numBytesInBuffer > 0 ) {
+                    if (readByte == ETB_CHAR) {
+                        if (numBytesInBuffer > 0) {
                             StringBuilder sb = new StringBuilder();
-                            for ( int i = 0 ; i < numBytesInBuffer ; i++ ) {
+                            for (int i = 0; i < numBytesInBuffer; i++) {
                                 byte rb = receiveBuffer[i];
                                 switch (rb) {
-                                    case EOF_CHAR : break;
-                                    case CR_CHAR : break;
-                                    case LF_CHAR : break;
-                                    case ETB_CHAR : break;
-                                    default : 
-                                        sb.append( (char) receiveBuffer[i]);
+                                    case EOF_CHAR:
+                                        break;
+                                    case CR_CHAR:
+                                        break;
+                                    case LF_CHAR:
+                                        break;
+                                    case ETB_CHAR:
+                                        break;
+                                    default:
+                                        sb.append((char) receiveBuffer[i]);
                                         break;
                                 }
                             }
@@ -137,6 +141,7 @@ public class SerialCommHandler implements SerialPortEventListener {
             }
         }
     }
+
     public void sendCommand(char commandChar) {
         if (commStatus == CommStatus.UP) {
             try {
@@ -147,10 +152,20 @@ public class SerialCommHandler implements SerialPortEventListener {
         }
     }
 
+    public void sendPosition(double position) {
+        if (commStatus == CommStatus.UP) {
+            DecimalFormat df = new DecimalFormat("0.00");
+            String toSend = df.format(position);
+            try {
+                serialPort.writeString(toSend.replaceAll(",", "."));
+            } catch (SerialPortException ex) {
+                System.out.println("serialPort.writeString exception " + ex.getMessage());
+            }
+        }
+    }
+
     public String getMessageFromReceiveQueue() {
         return messageQueue.poll();
     }
 
-    
-    
 }

@@ -35,7 +35,7 @@ class FromArduinoMessageEvent {
         PROGRAM_IS_HALTED,
         STEP_POSITIVE,
         STEP_NEGATIVE,
-        POSITION_TO,
+        GOT_POSITION,
         GET_CURRENT_POSITION,
         GOT_STATUS,
         ZERO_POSITION,
@@ -45,7 +45,6 @@ class FromArduinoMessageEvent {
     
     private MessageType messageType;
     private double value;
-    private String message;
 
     public FromArduinoMessageEvent() {
     }
@@ -61,14 +60,6 @@ class FromArduinoMessageEvent {
 
     public void setMessageType(MessageType messageType) {
         this.messageType = messageType;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     public double getValue() {

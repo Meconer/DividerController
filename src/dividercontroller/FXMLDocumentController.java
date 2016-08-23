@@ -21,9 +21,12 @@ package dividercontroller;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -102,7 +105,31 @@ public class FXMLDocumentController implements Initializable {
     private void onStopBtnClicked() {
         ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.QUIT_PROGRAM, 0);
         eventBus.post(event);
+    }
 
+    @FXML
+    private void onRunBtnClicked() {
+        ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.RUN_PROGRAM, 0);
+        eventBus.post(event);
+    }
+
+    @FXML
+    private void onSetZeroBtnClicked() {
+        ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.ZERO_POSITION, 0);
+        eventBus.post(event);
+    }
+
+    @FXML
+    private void onPositionBtnClicked() {
+        String positionText = positionTxtFld.getText().replaceAll("\\.", ",");
+        double position;
+        try {
+            position = Double.parseDouble(positionText);
+            ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.POSITION_TO, position);
+            eventBus.post(event);
+        } catch ( NumberFormatException ex) {
+            showMalformedNumberAlert();
+        }
     }
 
     @Subscribe
@@ -115,19 +142,41 @@ public class FXMLDocumentController implements Initializable {
 
             case PROGRAM_IS_HALTED:
                 System.out.println("Got event Program is halted");
-                setControlsForHaltedProgram();
+                Platform.runLater(() -> {
+                    setControlsForHaltedProgram();
+                });
+
                 break;
 
             case PROGRAM_IS_RUNNING:
                 System.out.println("Got event Program is running");
-                setControlsForRunningProgram();
+                Platform.runLater(() -> {
+                    setControlsForRunningProgram();
+                });
+
                 break;
 
             case GOT_STATUS:
-                System.out.println("got event " +  event.getMessage());
-                enableOrDisableUIControls(arduinoDivider.getDividerStatus());
-                break;
+                System.out.println("got event " + event.getMessageType());
+                Platform.runLater(() -> {
+                    enableOrDisableUIControls(arduinoDivider.getDividerStatus());
+                });
                 
+                break;
+
+            case GOT_POSITION:
+                double position = event.getValue();
+                System.out.println("Position :" + position);
+                System.out.println("Got event " + event.getMessageType());
+                DecimalFormat df = new DecimalFormat("0.00");
+                String positionText = df.format(position).replaceAll(",", ".");
+               
+                System.out.println("positionText :" + positionText);
+                Platform.runLater(() -> {
+                    currPosLabel.setText(positionText);
+                });
+                break;
+
             default:
                 break;
         }
@@ -147,8 +196,8 @@ public class FXMLDocumentController implements Initializable {
     }
 
     private void setControlsForHaltedProgram() {
-        runBtn.setDisable(true);
-        stopBtn.setDisable(false);
+        runBtn.setDisable(false);
+        stopBtn.setDisable(true);
         sendBtn.setDisable(false);
         loadBtn.setDisable(false);
         positionBtn.setDisable(false);
@@ -162,5 +211,12 @@ public class FXMLDocumentController implements Initializable {
         loadBtn.setDisable(false);
         positionBtn.setDisable(false);
         setZeroBtn.setDisable(false);
+    }
+
+    private void showMalformedNumberAlert() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setContentText("Fel format på position");
+        alert.setTitle("FEL!");
+        alert.showAndWait();
     }
 }
