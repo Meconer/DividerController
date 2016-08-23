@@ -185,9 +185,11 @@ public class ArduinoDivider {
                                 case Idle:
                                     CommandToDivider command = commandSendQueue.poll();
                                     if (command != null) {
+                                        nextTimeToAskForAngle += 2000;
                                         System.out.println("Sending command :" + command.getCommandChar());
                                         serialCommHandler.sendCommand(command.getCommandChar());
                                         if ( command.getCommand() == CommandToDivider.DividerCommand.POSITION_TO) {
+                                            System.out.println("Sending position value "+command.getValue());
                                             serialCommHandler.sendPosition(command.getValue());
                                         }
                                     } else if (now > nextTimeToAskForAngle) {
@@ -209,7 +211,7 @@ public class ArduinoDivider {
         System.out.println("Starting command sender");
         commandSenderService.start();
     }
-    private static final int LOOP_TIME = 1000;
+    private static final int LOOP_TIME = 200;
 
     private void initMessageReceiver() {
         Service messageReceiverService = new Service() {

@@ -121,7 +121,7 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void onPositionBtnClicked() {
-        String positionText = positionTxtFld.getText().replaceAll("\\.", ",");
+        String positionText = positionTxtFld.getText().replaceAll(",", ".");
         double position;
         try {
             position = Double.parseDouble(positionText);

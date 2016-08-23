@@ -155,9 +155,10 @@ public class SerialCommHandler implements SerialPortEventListener {
     public void sendPosition(double position) {
         if (commStatus == CommStatus.UP) {
             DecimalFormat df = new DecimalFormat("0.00");
-            String toSend = df.format(position);
+            String textToSend = df.format(position).replaceAll(",", ".");
+            System.out.println("Serial sending :"+textToSend);
             try {
-                serialPort.writeString(toSend.replaceAll(",", "."));
+                serialPort.writeString(textToSend);
             } catch (SerialPortException ex) {
                 System.out.println("serialPort.writeString exception " + ex.getMessage());
             }
