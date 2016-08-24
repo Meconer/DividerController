@@ -82,7 +82,8 @@ public class ArduinoDivider {
     public enum DividerStatus {
         Unknown,
         WaitingForCommand,
-        RunningProgram
+        RunningProgram,
+        UploadToPC
     };
 
     private DividerStatus dividerStatus = DividerStatus.Unknown;
@@ -178,8 +179,10 @@ public class ArduinoDivider {
 
                     @Override
                     protected Void call() throws Exception {
+                        boolean hasBeenInUploadState = false;
+                        long uploadTimeOutTime = 0;
                         while (threadRun) {
-                            //System.out.println("currentCommState :" + currentCommState);
+                            System.out.println("currentCommState :" + currentCommState);
                             long now = System.currentTimeMillis();
                             switch (currentCommState) {
                                 case StartingUp:
@@ -206,8 +209,21 @@ public class ArduinoDivider {
                                     break;
                                     
                                 case UploadProgramToPc:
-                                    
-
+                                    if ( !hasBeenInUploadState ) {
+                                        uploadTimeOutTime = now + 5000;
+                                        hasBeenInUploadState = true;
+                                    } else {
+                                        command = commandSendQueue.poll();  // should be upload command.
+                                        if ( command != null ) {
+                                            serialCommHandler.sendCommand(command.getCommandChar());
+                                            dividerStatus = DividerStatus.UploadToPC;
+                                        }
+                                        if ( now > uploadTimeOutTime ) {
+                                            currentCommState = CommState.Idle;
+                                            hasBeenInUploadState = false;
+                                        }
+                                    }
+    
                                 default:
                                     break;
                             }
@@ -221,7 +237,7 @@ public class ArduinoDivider {
         System.out.println("Starting command sender");
         commandSenderService.start();
     }
-    private static final int LOOP_TIME = 200;
+    private static final int LOOP_TIME = 500;
 
     private void initMessageReceiver() {
         Service messageReceiverService = new Service() {
