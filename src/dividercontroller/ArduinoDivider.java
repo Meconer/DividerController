@@ -22,7 +22,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import static java.lang.Thread.sleep;
 
@@ -124,6 +123,8 @@ public class ArduinoDivider {
             case POSITION_TO:
                 sendPositionTo( event.getValue());
                 break;
+            case UPLOAD_TO_PC:
+                sendUploadToPCCommand();
             default:
                 break;
         }
@@ -162,6 +163,12 @@ public class ArduinoDivider {
         System.out.println("Position to sent" + position);
     }
 
+    private void sendUploadToPCCommand() {
+        commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.UPLOAD_PROGRAM));
+        System.out.println("Upload sent");
+        currentCommState = CommState.UploadProgramToPc;
+    }
+
     private void initCommandSender() {
         Service commandSenderService = new Service() {
             @Override
@@ -172,7 +179,7 @@ public class ArduinoDivider {
                     @Override
                     protected Void call() throws Exception {
                         while (threadRun) {
-                            System.out.println("currentCommState :" + currentCommState);
+                            //System.out.println("currentCommState :" + currentCommState);
                             long now = System.currentTimeMillis();
                             switch (currentCommState) {
                                 case StartingUp:
@@ -197,6 +204,9 @@ public class ArduinoDivider {
                                         nextTimeToAskForAngle = now + 10000;
                                     }
                                     break;
+                                    
+                                case UploadProgramToPc:
+                                    
 
                                 default:
                                     break;

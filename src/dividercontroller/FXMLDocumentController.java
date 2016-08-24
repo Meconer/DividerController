@@ -131,6 +131,12 @@ public class FXMLDocumentController implements Initializable {
             showMalformedNumberAlert();
         }
     }
+    
+    @FXML
+    private void onLoadBtnClicked() {
+        ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.UPLOAD_TO_PC, 0);
+        eventBus.post(event);
+    }
 
     @Subscribe
     private void handleEventBusEvent(FromArduinoMessageEvent event) {

@@ -54,7 +54,7 @@
                   <Insets left="10.0" right="10.0" top="25.0" />
                </VBox.margin>
             </Button>
-            <Button fx:id="loadBtn" layoutX="20.0" layoutY="87.0" mnemonicParsing="false" prefHeight="31.0" prefWidth="113.0" text="Ladda">
+            <Button fx:id="loadBtn" layoutX="20.0" layoutY="87.0" mnemonicParsing="false" onAction="#onLoadBtnClicked" prefHeight="31.0" prefWidth="113.0" text="Ladda">
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
