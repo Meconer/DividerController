@@ -128,7 +128,7 @@ public class FXMLDocumentController implements Initializable {
             ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.POSITION_TO, position);
             eventBus.post(event);
         } catch ( NumberFormatException ex) {
-            showMalformedNumberAlert();
+            showError("Felaktigt numeriskt format");
         }
     }
     
@@ -136,6 +136,17 @@ public class FXMLDocumentController implements Initializable {
     private void onLoadBtnClicked() {
         ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.UPLOAD_TO_PC, 0);
         eventBus.post(event);
+    }
+    
+    @FXML 
+    private void onSendButtonClicked() {
+        DividerProgram dividerProgram = new DividerProgram(programTextArea.getText());
+        if ( dividerProgram.isSyntaxOk() ) {
+            eventBus.post(new DownloadProgramMessage( dividerProgram.getDownloadToArduinoText()));
+        } else {
+            showError( dividerProgram.getSyntaxErrorMessage());
+        }
+        
     }
 
     @Subscribe
@@ -187,6 +198,12 @@ public class FXMLDocumentController implements Initializable {
                 break;
         }
     }
+    
+    @Subscribe
+    private void handleUploadedProgramMessage( UploadedProgramMessage message ) {
+        programTextArea.clear();
+        programTextArea.setText(message.getCleanedUpText());
+    }
 
     void stopThreads() {
         arduinoDivider.stopThreads();
@@ -219,9 +236,9 @@ public class FXMLDocumentController implements Initializable {
         setZeroBtn.setDisable(false);
     }
 
-    private void showMalformedNumberAlert() {
+    private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setContentText("Fel format på position");
+        alert.setContentText(message);
         alert.setTitle("FEL!");
         alert.showAndWait();
     }

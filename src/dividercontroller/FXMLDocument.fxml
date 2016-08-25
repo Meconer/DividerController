@@ -46,7 +46,7 @@
                   <Insets left="10.0" right="10.0" top="5.0" />
                </VBox.margin>
             </Button>
-            <Button fx:id="sendBtn" layoutX="20.0" layoutY="51.0" mnemonicParsing="false" prefHeight="31.0" prefWidth="113.0" text="Skicka">
+            <Button fx:id="sendBtn" layoutX="20.0" layoutY="51.0" mnemonicParsing="false" onAction="#onSendButtonClicked" prefHeight="31.0" prefWidth="113.0" text="Skicka">
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>

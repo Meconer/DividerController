@@ -21,8 +21,6 @@ package dividercontroller;
 import com.google.common.eventbus.EventBus;
 import java.text.DecimalFormat;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -45,7 +43,15 @@ public class SerialCommHandler implements SerialPortEventListener {
 
     private final byte[] receiveBuffer = new byte[SIZE_OF_RECEIVE_BUFFER];
     private final ConcurrentLinkedQueue<String> messageQueue = new ConcurrentLinkedQueue();
-    private EventBus eventBus;
+
+    void sendProgram(String programToDownload) {
+        try {
+            serialPort.writeString(programToDownload);
+            serialPort.writeByte(EOF_CHAR);
+        } catch (SerialPortException ex) {
+            System.out.println("SerialPortException " + ex.getMessage());
+        }
+    }
 
     private enum CommStatus {
         UP, DOWN
@@ -61,11 +67,6 @@ public class SerialCommHandler implements SerialPortEventListener {
 
     public void startReader() {         // Start serial communication thread
         initSerialReader();
-    }
-
-    public void setEventBus(EventBus eventBus) {
-        this.eventBus = eventBus;
-        eventBus.register(this);
     }
 
     private void initSerialComm() {
@@ -133,6 +134,10 @@ public class SerialCommHandler implements SerialPortEventListener {
                     } else {
                         receiveBuffer[numBytesInBuffer] = readByte;
                         numBytesInBuffer++;
+                        if ( numBytesInBuffer > SIZE_OF_RECEIVE_BUFFER ) {
+                            System.out.println("Buffer Overrun!!");
+                            numBytesInBuffer=0;
+                        }
                     }
                 }
 

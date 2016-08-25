@@ -24,6 +24,7 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import static java.lang.Thread.sleep;
+import javafx.application.Platform;
 
 /**
  *
@@ -89,8 +90,9 @@ public class ArduinoDivider {
     private DividerStatus dividerStatus = DividerStatus.Unknown;
 
     private long timeToGetFirstStatus;
-    private double currentPosition = 0;
     private boolean threadRun = true;
+
+    private String programToDownload;
 
     public ArduinoDivider() {
         serialCommHandler = new SerialCommHandler();
@@ -102,6 +104,13 @@ public class ArduinoDivider {
     void startSerial() {
         serialCommHandler.startReader();
         timeToGetFirstStatus = System.currentTimeMillis() + DELAY_BEFORE_GETTING_FIRST_STATUS;
+    }
+
+    @Subscribe
+    private void handleDownloadProgramMessage(DownloadProgramMessage downloadProgramMessage) {
+        programToDownload = downloadProgramMessage.getDividerProgram();
+        currentCommState = CommState.DownloadProgramToArduino;
+        commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.DOWNLOAD_PROGRAM));
     }
 
     @Subscribe
@@ -122,7 +131,7 @@ public class ArduinoDivider {
                 System.out.println("Set zero sent");
                 break;
             case POSITION_TO:
-                sendPositionTo( event.getValue());
+                sendPositionTo(event.getValue());
                 break;
             case UPLOAD_TO_PC:
                 sendUploadToPCCommand();
@@ -134,7 +143,6 @@ public class ArduinoDivider {
     void setEventBus(EventBus eventBus) {
         this.eventBus = eventBus;
         eventBus.register(this);
-        serialCommHandler.setEventBus(eventBus);
     }
 
     private void sendStopCommand() {
@@ -160,7 +168,7 @@ public class ArduinoDivider {
     private void sendPositionTo(double position) {
         CommandToDivider commandToDivider = new CommandToDivider(CommandToDivider.DividerCommand.POSITION_TO);
         commandToDivider.setValue(position);
-        commandSendQueue.add( commandToDivider);
+        commandSendQueue.add(commandToDivider);
         System.out.println("Position to sent" + position);
     }
 
@@ -179,8 +187,10 @@ public class ArduinoDivider {
 
                     @Override
                     protected Void call() throws Exception {
-                        boolean hasBeenInUploadState = false;
+                        int numTimesInUploadState = 0;
                         long uploadTimeOutTime = 0;
+                        int numTimesInDownloadState = 0;
+                        long downloadTimeOutTime = 0;
                         while (threadRun) {
                             System.out.println("currentCommState :" + currentCommState);
                             long now = System.currentTimeMillis();
@@ -198,8 +208,8 @@ public class ArduinoDivider {
                                         nextTimeToAskForAngle += 2000;
                                         System.out.println("Sending command :" + command.getCommandChar());
                                         serialCommHandler.sendCommand(command.getCommandChar());
-                                        if ( command.getCommand() == CommandToDivider.DividerCommand.POSITION_TO) {
-                                            System.out.println("Sending position value "+command.getValue());
+                                        if (command.getCommand() == CommandToDivider.DividerCommand.POSITION_TO) {
+                                            System.out.println("Sending position value " + command.getValue());
                                             serialCommHandler.sendPosition(command.getValue());
                                         }
                                     } else if (now > nextTimeToAskForAngle) {
@@ -207,23 +217,42 @@ public class ArduinoDivider {
                                         nextTimeToAskForAngle = now + 10000;
                                     }
                                     break;
-                                    
+
                                 case UploadProgramToPc:
-                                    if ( !hasBeenInUploadState ) {
-                                        uploadTimeOutTime = now + 5000;
-                                        hasBeenInUploadState = true;
-                                    } else {
+                                    if (numTimesInUploadState == 0) {
+                                        uploadTimeOutTime = now + UP_AND_DOWNLOAD_TIMEOUT;
+                                        numTimesInUploadState++;
+                                    } else if (numTimesInUploadState < 5) {
                                         command = commandSendQueue.poll();  // should be upload command.
-                                        if ( command != null ) {
+                                        if (command != null) {
                                             serialCommHandler.sendCommand(command.getCommandChar());
                                             dividerStatus = DividerStatus.UploadToPC;
                                         }
-                                        if ( now > uploadTimeOutTime ) {
-                                            currentCommState = CommState.Idle;
-                                            hasBeenInUploadState = false;
-                                        }
+                                        numTimesInUploadState++;
+                                    } else if (now > uploadTimeOutTime) {
+                                        currentCommState = CommState.Idle;
+                                        dividerStatus = DividerStatus.WaitingForCommand;
+                                        numTimesInUploadState = 0;
                                     }
-    
+
+                                case DownloadProgramToArduino:
+                                    if (numTimesInDownloadState == 0) {
+                                        downloadTimeOutTime = now + UP_AND_DOWNLOAD_TIMEOUT;
+                                        numTimesInDownloadState++;
+                                    } else if (numTimesInDownloadState < 5 ) {
+                                        command = commandSendQueue.poll();
+                                        if (command != null) {
+                                            serialCommHandler.sendCommand(command.getCommandChar());
+                                            serialCommHandler.sendProgram( programToDownload );
+                                        }
+                                        numTimesInDownloadState++;
+                                    } else if ( now > downloadTimeOutTime) {
+                                        currentCommState = CommState.Idle;
+                                        dividerStatus = DividerStatus.WaitingForCommand;
+                                        numTimesInDownloadState = 0;
+                                    }
+                                    break;
+
                                 default:
                                     break;
                             }
@@ -231,6 +260,7 @@ public class ArduinoDivider {
                         }
                         return null;
                     }
+                    private static final int UP_AND_DOWNLOAD_TIMEOUT = 5000;
                 };
             }
         };
@@ -240,6 +270,7 @@ public class ArduinoDivider {
     private static final int LOOP_TIME = 500;
 
     private void initMessageReceiver() {
+
         Service messageReceiverService = new Service() {
             @Override
             protected Task createTask() {
@@ -250,9 +281,19 @@ public class ArduinoDivider {
                         while (threadRun) {
 
                             String message = serialCommHandler.getMessageFromReceiveQueue();
+
                             if (message != null) {
-                                System.out.println("Message " + message);
-                                checkMessage(message);
+                                if (currentCommState == CommState.UploadProgramToPc) {
+                                    if (message.endsWith("Upload finished")) {
+                                        sendMessageToGui(message);
+                                        System.out.println("Upload completed :" + message);
+                                        currentCommState = CommState.Idle;
+                                    }
+                                } else {
+                                    System.out.println("Message " + message);
+                                    checkMessage(message);
+                                }
+
                             }
                             sleep(LOOP_TIME);
                         }
@@ -283,16 +324,22 @@ public class ArduinoDivider {
                         } else if (message.startsWith("A")) {
                             String angularValue = message.substring(1);
                             int decimalPosition = angularValue.indexOf(".");
-                            String intPart = angularValue.substring(0,decimalPosition);
-                            String decPart = angularValue.substring(decimalPosition+1);
+                            String intPart = angularValue.substring(0, decimalPosition);
+                            String decPart = angularValue.substring(decimalPosition + 1);
                             double position = Integer.parseInt(intPart) + Integer.parseInt(decPart) / 100.0;
-                            currentPosition = position;
                             eventBus.post(new FromArduinoMessageEvent(FromArduinoMessageEvent.MessageType.GOT_POSITION, position));
                         }
 
                     }
 
+                    private void sendMessageToGui(String message) {
+                        Platform.runLater(() -> {
+                            eventBus.post(new UploadedProgramMessage(message));
+                        });
+                    }
+
                 };
+
             }
         };
         System.out.println("Starting message receiver");
