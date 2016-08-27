@@ -18,7 +18,6 @@
  */
 package dividercontroller;
 
-import com.google.common.eventbus.EventBus;
 import java.text.DecimalFormat;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import jssc.SerialPort;

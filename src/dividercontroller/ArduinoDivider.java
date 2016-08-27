@@ -163,6 +163,7 @@ public class ArduinoDivider {
     private void sendSetZeroPosition() {
         commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.ZERO_POSITION));
         System.out.println("Set Zero sent");
+        stopThreads();
     }
 
     private void sendPositionTo(double position) {
@@ -177,9 +178,11 @@ public class ArduinoDivider {
         System.out.println("Upload sent");
         currentCommState = CommState.UploadProgramToPc;
     }
+    
+    private Service commandSenderService;
 
     private void initCommandSender() {
-        Service commandSenderService = new Service() {
+        commandSenderService = new Service() {
             @Override
             protected Task createTask() {
                 return new Task<Void>() {
@@ -191,7 +194,7 @@ public class ArduinoDivider {
                         long uploadTimeOutTime = 0;
                         int numTimesInDownloadState = 0;
                         long downloadTimeOutTime = 0;
-                        while (threadRun) {
+                        while (! isCancelled()) {
                             System.out.println("currentCommState :" + currentCommState);
                             long now = System.currentTimeMillis();
                             switch (currentCommState) {
@@ -268,17 +271,18 @@ public class ArduinoDivider {
         commandSenderService.start();
     }
     private static final int LOOP_TIME = 500;
+    private Service messageReceiverService;
 
     private void initMessageReceiver() {
 
-        Service messageReceiverService = new Service() {
+        messageReceiverService = new Service() {
             @Override
             protected Task createTask() {
                 return new Task<Void>() {
 
                     @Override
                     protected Void call() throws Exception {
-                        while (threadRun) {
+                        while (!isCancelled()) {
 
                             String message = serialCommHandler.getMessageFromReceiveQueue();
 
@@ -352,7 +356,8 @@ public class ArduinoDivider {
     }
 
     void stopThreads() {
-        threadRun = false;
+        messageReceiverService.cancel();
+        commandSenderService.cancel();
     }
 
 }
