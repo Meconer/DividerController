@@ -27,7 +27,7 @@ import jssc.SerialPort;
  */
 public class Configuration {
     private final String CONFIG_NAME = "se.mecona.dividerController";
-    private final String DEFAULT_COMPORT = "COM3";
+    private final String DEFAULT_COMPORT = "COM7";
     private final String COMPORT_KEY = "CommPort";
     private final String COMM_BAUDRATE_KEY = "CommBaudRate";
     private final int DEFAULT_COMM_BAUDRATE = SerialPort.BAUDRATE_115200;

@@ -163,7 +163,6 @@ public class ArduinoDivider {
     private void sendSetZeroPosition() {
         commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.ZERO_POSITION));
         System.out.println("Set Zero sent");
-        stopThreads();
     }
 
     private void sendPositionTo(double position) {
