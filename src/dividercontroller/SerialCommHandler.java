@@ -20,6 +20,8 @@ package dividercontroller;
 
 import java.text.DecimalFormat;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -47,6 +49,15 @@ public class SerialCommHandler implements SerialPortEventListener {
         try {
             serialPort.writeString(programToDownload);
             serialPort.writeByte(EOF_CHAR);
+        } catch (SerialPortException ex) {
+            System.out.println("SerialPortException " + ex.getMessage());
+        }
+    }
+
+    void stopReader() {
+        try {
+            serialPort.removeEventListener();
+            serialPort.closePort();
         } catch (SerialPortException ex) {
             System.out.println("SerialPortException " + ex.getMessage());
         }
