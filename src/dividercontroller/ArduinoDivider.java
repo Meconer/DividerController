@@ -105,7 +105,7 @@ public class ArduinoDivider {
     public void startDivider() {
         initMessageReceiverTask();
         initSerialSendTask();
-        
+        startSerial();
     }
 
     void startSerial() {
