@@ -18,6 +18,7 @@
  */
 package dividercontroller;
 
+import com.google.common.eventbus.EventBus;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -29,16 +30,29 @@ import javafx.stage.Stage;
  * @author Mats Andersson <mats.andersson@mecona.se>
  */
 public class DividerController extends Application {
+
     FXMLDocumentController controller;
+    ArduinoDivider arduinoDivider;
+    EventBus eventBus;
+
     @Override
     public void start(Stage stage) throws Exception {
         FXMLLoader loader = new FXMLLoader();
         Parent root = loader.load(getClass().getResource("FXMLDocument.fxml"));
-        controller = (FXMLDocumentController) loader.getController();
         Scene scene = new Scene(root);
-        
+
         stage.setScene(scene);
+
+        controller = loader.<FXMLDocumentController>getController();
+        eventBus = new EventBus();
+        arduinoDivider = new ArduinoDivider();
+        arduinoDivider.setEventBus(eventBus);
+        controller.setEventBus( eventBus);
+        arduinoDivider.startDivider();
+        controller.setArduinoDivider(arduinoDivider);
+
         stage.show();
+
     }
 
     /**
@@ -47,7 +61,5 @@ public class DividerController extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-    
-    
-    
+
 }

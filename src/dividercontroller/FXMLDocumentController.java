@@ -64,16 +64,13 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private Button positionBtn;
 
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        eventBus = new EventBus();
-
-        arduinoDivider = new ArduinoDivider();
-        arduinoDivider.startSerial();
-        arduinoDivider.setEventBus(eventBus);
-        eventBus.register(this);
+    public void setArduinoDivider(ArduinoDivider arduinoDivider) {
+        this.arduinoDivider = arduinoDivider;
+        this.arduinoDivider.setEventBus(eventBus);
     }
 
+    
+    
     // Setup buttons and labels from Arduino status.
     private void enableOrDisableUIControls(ArduinoDivider.DividerStatus dividerStatus) {
         switch (dividerStatus) {
@@ -241,5 +238,15 @@ public class FXMLDocumentController implements Initializable {
         alert.setContentText(message);
         alert.setTitle("FEL!");
         alert.showAndWait();
+    }
+
+    void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+        eventBus.register(this);
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        
     }
 }

@@ -60,9 +60,9 @@ import javafx.application.Platform;
  */
 public class ArduinoDivider {
 
-    SerialCommHandler serialCommHandler;
+    private SerialCommHandler serialCommHandler;
 
-    EventBus eventBus;
+    private EventBus eventBus;
     private final long DELAY_BEFORE_GETTING_FIRST_STATUS = 3000;
 
     /**
@@ -100,8 +100,12 @@ public class ArduinoDivider {
         //sendGetStatusCommand();
         // initCommandSender();
         // initMessageReceiver();
+    }
+    
+    public void startDivider() {
         initMessageReceiverTask();
         initSerialSendTask();
+        
     }
 
     void startSerial() {
@@ -194,7 +198,9 @@ public class ArduinoDivider {
     private void initSerialSendTask() {
         serialSendTask = new SerialSendTask();
         stopSerialSendTask = false;
-        new Thread(serialSendTask).start();
+        Thread sST = new Thread(serialSendTask);
+        sST.setDaemon(true);
+        sST.start();
     }
 
     private class SerialSendTask implements Runnable {
@@ -289,7 +295,9 @@ public class ArduinoDivider {
     private void initMessageReceiverTask() {
         messageReceiverTask = new MessageReceiverTask();
         stopMessageReceiverTask = false;
-        new Thread(messageReceiverTask).start();
+        Thread mRT = new Thread(messageReceiverTask);
+        mRT.setDaemon(true);
+        mRT.start();
     }
 
     private class MessageReceiverTask implements Runnable {
@@ -374,8 +382,13 @@ public class ArduinoDivider {
         serialCommHandler.stopReader();
         stopMessageReceiverTask = true;
         stopSerialSendTask = true;
-        while ( !messageReceiverTaskStopped ) ;
-        while ( !serialSendTaskStopped );
+        while ( !messageReceiverTaskStopped ) {
+            // Wait for task stop;
+        }
+            
+        while ( !serialSendTaskStopped ) {
+            // Wait for task stop;
+        }
     }
 
 }
