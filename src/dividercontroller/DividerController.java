@@ -45,8 +45,7 @@ public class DividerController extends Application {
 
         controller = loader.<FXMLDocumentController>getController();
         eventBus = new EventBus();
-        arduinoDivider = new ArduinoDivider();
-        arduinoDivider.setEventBus(eventBus);
+        arduinoDivider = new ArduinoDivider(eventBus);
         controller.setEventBus( eventBus);
         arduinoDivider.startDivider();
         controller.setArduinoDivider(arduinoDivider);

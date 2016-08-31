@@ -66,7 +66,6 @@ public class FXMLDocumentController implements Initializable {
 
     public void setArduinoDivider(ArduinoDivider arduinoDivider) {
         this.arduinoDivider = arduinoDivider;
-        this.arduinoDivider.setEventBus(eventBus);
     }
 
     

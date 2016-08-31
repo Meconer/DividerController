@@ -60,9 +60,9 @@ import javafx.application.Platform;
  */
 public class ArduinoDivider {
 
-    private SerialCommHandler serialCommHandler;
+    private final SerialCommHandler serialCommHandler;
 
-    private EventBus eventBus;
+    private final EventBus eventBus;
     private final long DELAY_BEFORE_GETTING_FIRST_STATUS = 3000;
 
     /**
@@ -95,11 +95,12 @@ public class ArduinoDivider {
 
     private String programToDownload;
 
-    public ArduinoDivider() {
+    public ArduinoDivider(EventBus eventBus) {
         serialCommHandler = new SerialCommHandler();
         //sendGetStatusCommand();
         // initCommandSender();
         // initMessageReceiver();
+        this.eventBus = eventBus;
     }
     
     public void startDivider() {
@@ -145,11 +146,6 @@ public class ArduinoDivider {
             default:
                 break;
         }
-    }
-
-    void setEventBus(EventBus eventBus) {
-        this.eventBus = eventBus;
-        eventBus.register(this);
     }
 
     private void sendStopCommand() {
