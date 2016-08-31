@@ -62,4 +62,8 @@ public class DividerController extends Application {
         launch(args);
     }
 
+    @Override
+    public void stop() {
+        arduinoDivider.stopThreads();
+    }
 }

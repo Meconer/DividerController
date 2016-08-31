@@ -170,7 +170,6 @@ public class ArduinoDivider {
     private void sendSetZeroPosition() {
         commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.ZERO_POSITION));
         System.out.println("Set Zero sent");
-        stopThreads();
     }
 
     private void sendPositionTo(double position) {
@@ -213,8 +212,12 @@ public class ArduinoDivider {
             long uploadTimeOutTime = 0;
             int numTimesInDownloadState = 0;
             long downloadTimeOutTime = 0;
+            CommState lastCommState = CommState.Idle;
             while (!stopSerialSendTask) {
-                System.out.println("currentCommState :" + currentCommState);
+                if ( currentCommState != lastCommState ) {
+                    System.out.println("currentCommState :" + currentCommState);
+                    lastCommState = currentCommState;
+                }
                 long now = System.currentTimeMillis();
                 switch (currentCommState) {
                     case StartingUp:
@@ -316,7 +319,7 @@ public class ArduinoDivider {
                             currentCommState = CommState.Idle;
                         }
                     } else {
-                        System.out.println("Message " + message);
+                        //System.out.println("Message " + message);
                         checkMessage(message);
                     }
 
@@ -326,14 +329,14 @@ public class ArduinoDivider {
                 } catch (InterruptedException ex) {
 
                 }
-                System.out.println("MessageReceiverTask is running");
+                //System.out.println("MessageReceiverTask is running");
             }
             messageReceiverTaskStopped = true;
 
         }
 
         private void checkMessage(String message) {
-            System.out.println("CheckMessage :" + message);
+            //System.out.println("CheckMessage :" + message);
             if (message.equals("R")) {
                 // Response to R command. Throw away and set status to running
                 dividerStatus = DividerStatus.RunningProgram;
@@ -353,12 +356,13 @@ public class ArduinoDivider {
                     }
                 }
             } else if (message.startsWith("A")) {
-                String angularValue = message.substring(1);
-                int decimalPosition = angularValue.indexOf(".");
-                String intPart = angularValue.substring(0, decimalPosition);
-                String decPart = angularValue.substring(decimalPosition + 1);
-                double position = Integer.parseInt(intPart) + Integer.parseInt(decPart) / 100.0;
-                eventBus.post(new FromArduinoMessageEvent(FromArduinoMessageEvent.MessageType.GOT_POSITION, position));
+                try {
+                    double position = getPositionFromMessage(message);
+                    eventBus.post(new FromArduinoMessageEvent(FromArduinoMessageEvent.MessageType.GOT_POSITION, position));
+                } catch (NumberFormatException ex ) {
+                    
+                }
+                
             }
 
         }
@@ -367,6 +371,21 @@ public class ArduinoDivider {
             Platform.runLater(() -> {
                 eventBus.post(new UploadedProgramMessage(message));
             });
+        }
+
+        private double getPositionFromMessage(String message) {
+                String angularValue = message.substring(1);
+                int decimalPosition = angularValue.indexOf(".");
+                if ( decimalPosition >= 0 ) {
+                    String intPart = angularValue.substring(0, decimalPosition);
+                    String decPart;
+                    if ( angularValue.length() > decimalPosition ) {
+                        decPart = angularValue.substring(decimalPosition + 1);
+                    } else decPart = "0";
+                    double position = Integer.parseInt(intPart) + Integer.parseInt(decPart) / 100.0;
+                    return position;
+                } else throw new NumberFormatException("Wrong number in string");
+    
         }
 
     }

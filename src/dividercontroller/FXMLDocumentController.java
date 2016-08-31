@@ -155,7 +155,7 @@ public class FXMLDocumentController implements Initializable {
                 break;
 
             case PROGRAM_IS_HALTED:
-                System.out.println("Got event Program is halted");
+                //System.out.println("Got event Program is halted");
                 Platform.runLater(() -> {
                     setControlsForHaltedProgram();
                 });
@@ -163,7 +163,7 @@ public class FXMLDocumentController implements Initializable {
                 break;
 
             case PROGRAM_IS_RUNNING:
-                System.out.println("Got event Program is running");
+                //System.out.println("Got event Program is running");
                 Platform.runLater(() -> {
                     setControlsForRunningProgram();
                 });
@@ -171,7 +171,7 @@ public class FXMLDocumentController implements Initializable {
                 break;
 
             case GOT_STATUS:
-                System.out.println("got event " + event.getMessageType());
+                // System.out.println("got event " + event.getMessageType());
                 Platform.runLater(() -> {
                     enableOrDisableUIControls(arduinoDivider.getDividerStatus());
                 });
@@ -180,12 +180,12 @@ public class FXMLDocumentController implements Initializable {
 
             case GOT_POSITION:
                 double position = event.getValue();
-                System.out.println("Position :" + position);
-                System.out.println("Got event " + event.getMessageType());
+                //System.out.println("Position :" + position);
+                //System.out.println("Got event " + event.getMessageType());
                 DecimalFormat df = new DecimalFormat("0.00");
                 String positionText = df.format(position).replaceAll(",", ".");
                
-                System.out.println("positionText :" + positionText);
+                //System.out.println("positionText :" + positionText);
                 Platform.runLater(() -> {
                     currPosLabel.setText(positionText);
                 });

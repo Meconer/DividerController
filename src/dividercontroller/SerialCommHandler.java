@@ -71,11 +71,19 @@ public class SerialCommHandler implements SerialPortEventListener {
 
     public SerialCommHandler() {
 
-        // Init serial comm parameters.
-        initSerialComm();
     }
 
     public void startReader() {         // Start serial communication thread
+        // Init serial comm parameters.
+        initSerialComm();
+        try {
+            int availableChars = serialPort.getInputBufferBytesCount();
+            serialPort.readString(availableChars);
+        } catch (SerialPortException ex) {
+            System.out.println("Serial exception : " + ex);
+            System.out.println("while emptying buffer at start.");
+        }
+        
         initSerialReader();
     }
 
@@ -89,6 +97,7 @@ public class SerialCommHandler implements SerialPortEventListener {
                     comPortParams.getStopBits(),
                     comPortParams.getParity());
             commStatus = CommStatus.UP;
+            
         } catch (SerialPortException ex) {
             System.out.println(ex.getMessage());
             commStatus = CommStatus.DOWN;
@@ -171,7 +180,7 @@ public class SerialCommHandler implements SerialPortEventListener {
         if (commStatus == CommStatus.UP) {
             DecimalFormat df = new DecimalFormat("0.00");
             String textToSend = df.format(position).replaceAll(",", ".");
-            System.out.println("Serial sending :"+textToSend);
+            //System.out.println("Serial sending :"+textToSend);
             try {
                 serialPort.writeString(textToSend);
             } catch (SerialPortException ex) {
