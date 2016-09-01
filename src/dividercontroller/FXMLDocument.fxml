@@ -62,7 +62,7 @@
                   <Insets left="10.0" right="10.0" top="5.0" />
                </VBox.margin>
             </Button>
-            <Button fx:id="openBtn" layoutX="20.0" layoutY="311.0" mnemonicParsing="false" prefHeight="31.0" prefWidth="113.0" text="Öppna">
+            <Button fx:id="openBtn" layoutX="20.0" layoutY="311.0" mnemonicParsing="false" onAction="#onOpenButtonClicked" prefHeight="31.0" prefWidth="113.0" text="Öppna">
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>

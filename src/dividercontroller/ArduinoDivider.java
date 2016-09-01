@@ -20,12 +20,8 @@ package dividercontroller;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import static java.lang.Thread.sleep;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 
 /**
@@ -101,6 +97,7 @@ public class ArduinoDivider {
         // initCommandSender();
         // initMessageReceiver();
         this.eventBus = eventBus;
+        eventBus.register(this);
     }
     
     public void startDivider() {

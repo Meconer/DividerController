@@ -18,8 +18,13 @@
  */
 package dividercontroller;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javafx.stage.FileChooser;
 
 /**
  *
@@ -27,14 +32,19 @@ import java.util.regex.Pattern;
  */
 class DividerProgram {
 
-    private final String program;
+    private String program;
     private String dividerProgramText;
 
     public DividerProgram(String program) {
         this.program = program;
         errString = "";
-        dividerProgramText = "";
     }
+
+    public DividerProgram() {
+        errString = "";
+        program = "";
+    }
+
 
     private static final String SYNTAX_CHECK_REGEX = "^((B-*\\d+\\.?\\d*)|(M\\d)|(P-*\\d+\\.?\\d*,-*\\d+\\.?\\d*)|R)$";
 
@@ -74,8 +84,30 @@ class DividerProgram {
         return dividerProgramText;
     }
 
-    String getSyntaxErrorMessage() {
+    public String getSyntaxErrorMessage() {
         return errString;
     }
 
+    public void openFromDisc() {
+        FileChooser fc = new FileChooser();
+        String initialDirectoryName = Configuration.getConfiguration().getInitialDirectoryName();
+        if ( initialDirectoryName != null ) fc.setInitialDirectory(new File(initialDirectoryName));
+        File file = fc.showOpenDialog(null);
+        if ( file != null ) {
+            program = readFromFile(file.getAbsolutePath()).replaceAll("\\r", "");
+            
+        }
+    }
+
+    private String readFromFile( String fileName ) {
+        try {
+            return new String(Files.readAllBytes(Paths.get(fileName)));
+        } catch (IOException ex) {
+            return null;
+        }
+    }
+
+    public String getText() {
+        return program;
+    }
 }

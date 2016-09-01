@@ -142,7 +142,16 @@ public class FXMLDocumentController implements Initializable {
         } else {
             showError( dividerProgram.getSyntaxErrorMessage());
         }
-        
+    }
+    
+    @FXML
+    private void onOpenButtonClicked() {
+        DividerProgram dividerProgram = new DividerProgram();
+        dividerProgram.openFromDisc();
+        if ( dividerProgram.isSyntaxOk() ) {
+            programTextArea.clear();
+            programTextArea.setText(dividerProgram.getText());
+        }
     }
 
     @Subscribe

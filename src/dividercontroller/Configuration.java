@@ -18,6 +18,7 @@
  */
 package dividercontroller;
 
+import java.io.File;
 import java.util.prefs.Preferences;
 import jssc.SerialPort;
 
@@ -37,6 +38,8 @@ public class Configuration {
     private final int DEFAULT_COMM_STOPBITS = SerialPort.STOPBITS_1;
     private final String COMM_PARITY_KEY = "CommParity";
     private final int DEFAULT_COMM_PARITY = SerialPort.PARITY_NONE;
+    
+    private final String initialDirectoryName = null;
 
     private final Preferences preferences;
     private final String commPort;
@@ -82,6 +85,11 @@ public class Configuration {
 
     public int getCommParity() {
         return commParity;
+    }
+
+
+    String getInitialDirectoryName() {
+        return initialDirectoryName;
     }
     
     
