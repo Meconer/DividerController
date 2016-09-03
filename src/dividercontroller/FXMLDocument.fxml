@@ -91,6 +91,22 @@
                   <Insets left="10.0" right="10.0" top="5.0" />
                </VBox.margin>
             </Button>
+            <Button fx:id="positionBtn1" layoutX="20.0" layoutY="347.0" mnemonicParsing="false" onAction="#onStepPositiveBtnClicked" prefHeight="31.0" prefWidth="113.0" text="Steg +">
+               <opaqueInsets>
+                  <Insets />
+               </opaqueInsets>
+               <VBox.margin>
+                  <Insets left="10.0" right="10.0" top="25.0" />
+               </VBox.margin>
+            </Button>
+            <Button fx:id="positionBtn11" layoutX="20.0" layoutY="383.0" mnemonicParsing="false" onAction="#onStepNegativeBtnClicked" prefHeight="31.0" prefWidth="113.0" text="Steg -">
+               <opaqueInsets>
+                  <Insets />
+               </opaqueInsets>
+               <VBox.margin>
+                  <Insets left="10.0" right="10.0" top="5.0" />
+               </VBox.margin>
+            </Button>
          </children>
          <opaqueInsets>
             <Insets />

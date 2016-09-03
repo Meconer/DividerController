@@ -27,7 +27,6 @@ import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -64,6 +63,10 @@ public class FXMLDocumentController implements Initializable {
     private TextField positionTxtFld;
     @FXML
     private Button positionBtn;
+    @FXML 
+    private Button stepPositiveButton;
+    @FXML 
+    private Button stepNegativeButton;
 
     public void setArduinoDivider(ArduinoDivider arduinoDivider) {
         this.arduinoDivider = arduinoDivider;
@@ -127,6 +130,18 @@ public class FXMLDocumentController implements Initializable {
         } catch ( NumberFormatException ex) {
             showError("Felaktigt numeriskt format");
         }
+    }
+    
+    @FXML
+    private void onStepPositiveBtnClicked() {
+        ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.STEP_POSITIVE, 0);
+        eventBus.post(event);
+    }
+    
+    @FXML
+    private void onStepNegativeBtnClicked() {
+        ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.STEP_NEGATIVE, 0);
+        eventBus.post(event);
     }
     
     @FXML

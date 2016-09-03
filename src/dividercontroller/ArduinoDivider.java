@@ -138,6 +138,12 @@ public class ArduinoDivider {
             case POSITION_TO:
                 sendPositionTo(event.getValue());
                 break;
+            case STEP_NEGATIVE:
+                sendStepNegativeCommand();
+                break;
+            case STEP_POSITIVE:
+                sendStepPositiveCommand();
+                break;
             case UPLOAD_TO_PC:
                 sendUploadToPCCommand();
             default:
@@ -170,6 +176,16 @@ public class ArduinoDivider {
         commandToDivider.setValue(position);
         commandSendQueue.add(commandToDivider);
         System.out.println("Position to sent" + position);
+    }
+
+    private void sendStepNegativeCommand() {
+        commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.STEP_MINUS));
+        System.out.println("Step negative Zero sent");
+    }
+
+    private void sendStepPositiveCommand() {
+        commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.STEP_PLUS));
+        System.out.println("Step negative Zero sent");
     }
 
     private void sendUploadToPCCommand() {
