@@ -20,6 +20,7 @@ package dividercontroller;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import static dividercontroller.Utils.showError;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ResourceBundle;
@@ -154,6 +155,16 @@ public class FXMLDocumentController implements Initializable {
         }
     }
 
+    @FXML
+    private void onSaveButtonClicked() {
+        DividerProgram dividerProgram = new DividerProgram(programTextArea.getText());
+        if ( dividerProgram.isSyntaxOk() ) {
+            dividerProgram.saveToDisc();
+        } else {
+            showError("Syntaxfel. Kan inte sparas");
+        }
+    }
+    
     @Subscribe
     private void handleEventBusEvent(FromArduinoMessageEvent event) {
         switch (event.getCommand()) {
@@ -239,13 +250,6 @@ public class FXMLDocumentController implements Initializable {
         loadBtn.setDisable(false);
         positionBtn.setDisable(false);
         setZeroBtn.setDisable(false);
-    }
-
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setContentText(message);
-        alert.setTitle("FEL!");
-        alert.showAndWait();
     }
 
     void setEventBus(EventBus eventBus) {

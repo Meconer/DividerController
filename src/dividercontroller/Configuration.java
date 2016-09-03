@@ -18,7 +18,6 @@
  */
 package dividercontroller;
 
-import java.io.File;
 import java.util.prefs.Preferences;
 import jssc.SerialPort;
 
@@ -49,6 +48,11 @@ public class Configuration {
     private final int commParity;
 
     private static final Configuration INSTANCE = new Configuration();
+    
+    public static final String YES_BUTTON_TEXT = "Ja";
+    public static final String NO_BUTTON_TEXT = "Nej";
+    
+
     
     private Configuration() {
         preferences = Preferences.userRoot();

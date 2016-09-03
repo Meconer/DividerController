@@ -18,10 +18,14 @@
  */
 package dividercontroller;
 
+import static dividercontroller.Utils.*;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.stage.FileChooser;
@@ -44,7 +48,6 @@ class DividerProgram {
         errString = "";
         program = "";
     }
-
 
     private static final String SYNTAX_CHECK_REGEX = "^((B-*\\d+\\.?\\d*)|(M\\d)|(P-*\\d+\\.?\\d*,-*\\d+\\.?\\d*)|R)$";
 
@@ -91,15 +94,17 @@ class DividerProgram {
     public void openFromDisc() {
         FileChooser fc = new FileChooser();
         String initialDirectoryName = Configuration.getConfiguration().getInitialDirectoryName();
-        if ( initialDirectoryName != null ) fc.setInitialDirectory(new File(initialDirectoryName));
+        if (initialDirectoryName != null) {
+            fc.setInitialDirectory(new File(initialDirectoryName));
+        }
         File file = fc.showOpenDialog(null);
-        if ( file != null ) {
+        if (file != null) {
             program = readFromFile(file.getAbsolutePath()).replaceAll("\\r", "");
-            
+
         }
     }
 
-    private String readFromFile( String fileName ) {
+    private String readFromFile(String fileName) {
         try {
             return new String(Files.readAllBytes(Paths.get(fileName)));
         } catch (IOException ex) {
@@ -110,4 +115,37 @@ class DividerProgram {
     public String getText() {
         return program;
     }
+
+    void saveToDisc() {
+        FileChooser fc = new FileChooser();
+        String initialDirectoryName = Configuration.getConfiguration().getInitialDirectoryName();
+        if (initialDirectoryName != null) {
+            fc.setInitialDirectory(new File(initialDirectoryName));
+        }
+        File file = fc.showSaveDialog(null);
+        if (file != null) {
+            saveToFile(file);
+        }
+    }
+
+    private void saveToFile(File file) {
+        FileWriter fileWriter = null;
+        try {
+            fileWriter = new FileWriter(file);
+            fileWriter.write(program);
+            fileWriter.close();
+        } catch (IOException ex) {
+            showError("Kan inte spara filen/n" + ex.getMessage());
+        } finally {
+            if (fileWriter != null) {
+                try {
+                    fileWriter.close();
+                } catch (IOException ex) {
+                    showError("Kan inte spara filen/n" + ex.getMessage());
+                }
+            }
+        }
+
+    }
+
 }
