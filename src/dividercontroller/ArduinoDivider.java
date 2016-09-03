@@ -114,7 +114,7 @@ public class ArduinoDivider {
     @Subscribe
     private void handleDownloadProgramMessage(DownloadProgramMessage downloadProgramMessage) {
         programToDownload = downloadProgramMessage.getDividerProgram();
-        currentCommState = CommState.DownloadProgramToArduino;
+        //currentCommState = CommState.DownloadProgramToArduino;
         commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.DOWNLOAD_PROGRAM));
     }
 
@@ -246,6 +246,11 @@ public class ArduinoDivider {
                                 System.out.println("Sending position value " + command.getValue());
                                 serialCommHandler.sendPosition(command.getValue());
                             }
+                            if ( command.getCommand() == CommandToDivider.DividerCommand.DOWNLOAD_PROGRAM) {
+                                currentCommState = CommState.DownloadProgramToArduino;
+                                //serialCommHandler.sendCommand(command.getCommandChar());
+                            }
+                            command = null;
                         } else if (now > nextTimeToAskForAngle) {
                             serialCommHandler.sendCommand(new CommandToDivider(CommandToDivider.DividerCommand.GET_ANGLE).getCommandChar());
                             nextTimeToAskForAngle = now + 10000;
@@ -268,17 +273,14 @@ public class ArduinoDivider {
                             dividerStatus = DividerStatus.WaitingForCommand;
                             numTimesInUploadState = 0;
                         }
+                        break;
 
                     case DownloadProgramToArduino:
                         if (numTimesInDownloadState == 0) {
                             downloadTimeOutTime = now + UP_AND_DOWNLOAD_TIMEOUT;
                             numTimesInDownloadState++;
-                        } else if (numTimesInDownloadState < 5) {
-                            command = commandSendQueue.poll();
-                            if (command != null) {
-                                serialCommHandler.sendCommand(command.getCommandChar());
-                                serialCommHandler.sendProgram(programToDownload);
-                            }
+                        } else if (numTimesInDownloadState == 1) {
+                            serialCommHandler.sendProgram(programToDownload);
                             numTimesInDownloadState++;
                         } else if (now > downloadTimeOutTime) {
                             currentCommState = CommState.Idle;

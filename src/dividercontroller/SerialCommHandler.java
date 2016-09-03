@@ -153,7 +153,7 @@ public class SerialCommHandler implements SerialPortEventListener {
                     } else {
                         receiveBuffer[numBytesInBuffer] = readByte;
                         numBytesInBuffer++;
-                        if ( numBytesInBuffer > SIZE_OF_RECEIVE_BUFFER ) {
+                        if ( numBytesInBuffer >= SIZE_OF_RECEIVE_BUFFER ) {
                             System.out.println("Buffer Overrun!!");
                             numBytesInBuffer=0;
                         }
@@ -170,6 +170,7 @@ public class SerialCommHandler implements SerialPortEventListener {
         if (commStatus == CommStatus.UP) {
             try {
                 serialPort.writeByte((byte) commandChar);
+                System.out.println("Serial send command " +  commandChar);
             } catch (SerialPortException ex) {
                 System.out.println("serialPort.writeString exception " + ex.getMessage());
             }

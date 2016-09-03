@@ -247,6 +247,8 @@ public class FXMLDocumentController implements Initializable {
         loadBtn.setDisable(true);
         positionBtn.setDisable(true);
         setZeroBtn.setDisable(true);
+        stepPositiveButton.setDisable(true);
+        stepNegativeButton.setDisable(true);
     }
 
     private void setControlsForHaltedProgram() {
@@ -256,6 +258,8 @@ public class FXMLDocumentController implements Initializable {
         loadBtn.setDisable(false);
         positionBtn.setDisable(false);
         setZeroBtn.setDisable(false);
+        stepPositiveButton.setDisable(false);
+        stepNegativeButton.setDisable(false);
     }
 
     private void enableAllControls() {
@@ -265,6 +269,19 @@ public class FXMLDocumentController implements Initializable {
         loadBtn.setDisable(false);
         positionBtn.setDisable(false);
         setZeroBtn.setDisable(false);
+        stepNegativeButton.setDisable(false);
+        stepNegativeButton.setDisable(false);
+    }
+
+    private void disableAllControls() {
+        runBtn.setDisable(true);
+        stopBtn.setDisable(true);
+        sendBtn.setDisable(true);
+        loadBtn.setDisable(true);
+        positionBtn.setDisable(true);
+        setZeroBtn.setDisable(true);
+        stepNegativeButton.setDisable(true);
+        stepPositiveButton.setDisable(true);
     }
 
     void setEventBus(EventBus eventBus) {
@@ -274,6 +291,6 @@ public class FXMLDocumentController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        
+        disableAllControls();
     }
 }
