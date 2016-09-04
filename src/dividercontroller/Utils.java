@@ -49,5 +49,9 @@ public class Utils {
         return result.get() == btYes;
     }
 
-
+    public static void debugOutput(String message, int debugLevel ) {
+        if ( debugLevel >= Configuration.DEBUG_LEVEL ) {
+            System.out.println(message);
+        }
+    }
 }

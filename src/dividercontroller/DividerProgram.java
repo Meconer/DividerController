@@ -83,7 +83,7 @@ class DividerProgram {
             s = s.toUpperCase();
             dividerProgramText += s;
         }
-        System.out.println("DPT :" + dividerProgramText);
+        Utils.debugOutput("DPT :" + dividerProgramText,2);
         return dividerProgramText;
     }
 

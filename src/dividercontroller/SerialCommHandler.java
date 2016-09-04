@@ -19,6 +19,7 @@
 package dividercontroller;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +35,7 @@ import jssc.SerialPortException;
 public class SerialCommHandler implements SerialPortEventListener {
 
     SerialPort serialPort;
-    private final int SIZE_OF_RECEIVE_BUFFER = 50;
+    private final int SIZE_OF_RECEIVE_BUFFER = 500;
     private int numBytesInBuffer = 0;
 
     private final byte ETB_CHAR = 23;
@@ -50,7 +51,7 @@ public class SerialCommHandler implements SerialPortEventListener {
             serialPort.writeString(programToDownload);
             serialPort.writeByte(EOF_CHAR);
         } catch (SerialPortException ex) {
-            System.out.println("SerialPortException " + ex.getMessage());
+            Utils.debugOutput("SerialPortException " + ex.getMessage(), 3);
         }
     }
 
@@ -59,7 +60,7 @@ public class SerialCommHandler implements SerialPortEventListener {
             serialPort.removeEventListener();
             serialPort.closePort();
         } catch (SerialPortException ex) {
-            System.out.println("SerialPortException " + ex.getMessage());
+            Utils.debugOutput("SerialPortException " + ex.getMessage(), 3);
         }
     }
 
@@ -80,8 +81,8 @@ public class SerialCommHandler implements SerialPortEventListener {
             int availableChars = serialPort.getInputBufferBytesCount();
             serialPort.readString(availableChars);
         } catch (SerialPortException ex) {
-            System.out.println("Serial exception : " + ex);
-            System.out.println("while emptying buffer at start.");
+            Utils.debugOutput("SerialPortException " + ex.getMessage(), 3);
+            Utils.debugOutput("while emptying buffer at start.", 3);
         }
         
         initSerialReader();
@@ -109,7 +110,7 @@ public class SerialCommHandler implements SerialPortEventListener {
         try {
             serialPort.addEventListener(this);
         } catch (SerialPortException ex) {
-            System.out.println("SerialPortException " + ex.getMessage());
+            Utils.debugOutput("SerialPortException " + ex.getMessage(), 3);
         }
     }
 
@@ -124,7 +125,6 @@ public class SerialCommHandler implements SerialPortEventListener {
                 // make a string of it and put it in a queue.
                 while (serialPort.getInputBufferBytesCount() > 0) {
                     byte readByte = serialPort.readBytes(1)[0];
-                    //System.out.println("Received :" + String.valueOf((char) readByte) + readByte);
 
                     // etb received. Convert the buffer to a string and put it in the answer queue.
                     if (readByte == ETB_CHAR) {
@@ -148,20 +148,26 @@ public class SerialCommHandler implements SerialPortEventListener {
                             }
                             messageQueue.add(sb.toString());
                             numBytesInBuffer = 0;
-                            System.out.println("Message added: " + sb);
+                            Utils.debugOutput( "Message added: " + sb, 2);
                         }
                     } else {
                         receiveBuffer[numBytesInBuffer] = readByte;
                         numBytesInBuffer++;
                         if ( numBytesInBuffer >= SIZE_OF_RECEIVE_BUFFER ) {
-                            System.out.println("Buffer Overrun!!");
+                            Utils.debugOutput( "Buffer Overrun!!", 3);
+                            StringBuilder sb = new StringBuilder();
+                            for ( int i = 0 ; i < numBytesInBuffer; i++ ) {
+                                sb.append( (char)receiveBuffer[i] );
+                            }
+                            Utils.debugOutput(sb.toString(), 2);
+                            
                             numBytesInBuffer=0;
                         }
                     }
                 }
 
             } catch (SerialPortException ex) {
-                System.out.println(ex);
+                Utils.debugOutput(ex.getMessage(),3);
             }
         }
     }
@@ -170,9 +176,9 @@ public class SerialCommHandler implements SerialPortEventListener {
         if (commStatus == CommStatus.UP) {
             try {
                 serialPort.writeByte((byte) commandChar);
-                System.out.println("Serial send command " +  commandChar);
+                Utils.debugOutput("Serial send command " +  commandChar, 2);
             } catch (SerialPortException ex) {
-                System.out.println("serialPort.writeString exception " + ex.getMessage());
+                Utils.debugOutput("serialPort.writeString exception " + ex.getMessage(), 3);
             }
         }
     }
@@ -185,7 +191,7 @@ public class SerialCommHandler implements SerialPortEventListener {
             try {
                 serialPort.writeString(textToSend);
             } catch (SerialPortException ex) {
-                System.out.println("serialPort.writeString exception " + ex.getMessage());
+                Utils.debugOutput("serialPort.writeString exception " + ex.getMessage(), 3);
             }
         }
     }

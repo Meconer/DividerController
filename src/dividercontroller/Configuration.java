@@ -26,6 +26,8 @@ import jssc.SerialPort;
  * @author Mats Andersson <mats.andersson@mecona.se>
  */
 public class Configuration {
+
+    public final static int DEBUG_LEVEL = 2;
     private final String CONFIG_NAME = "se.mecona.dividerController";
     private final String DEFAULT_COMPORT = "COM3";
     private final String COMPORT_KEY = "CommPort";
