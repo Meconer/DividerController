@@ -18,7 +18,21 @@
  */
 package dividercontroller;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.prefs.Preferences;
+import javafx.collections.FXCollections;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import jssc.SerialPort;
 
 /**
@@ -42,7 +56,7 @@ public class Configuration {
     
     private final String initialDirectoryName = null;
 
-    private final Preferences preferences;
+    private final Preferences prefs = Preferences.userNodeForPackage(getClass());
     private final String commPort;
     private final int commBaudRate;
     private final int commDataBits;
@@ -53,16 +67,17 @@ public class Configuration {
     
     public static final String YES_BUTTON_TEXT = "Ja";
     public static final String NO_BUTTON_TEXT = "Nej";
+    private final int SETTINGS_DIALOG_WIDTH = 400;
+    private final int SETTINGS_DIALOG_HEIGHT = 200;
     
 
     
     private Configuration() {
-        preferences = Preferences.userRoot();
-        commPort = preferences.get(COMPORT_KEY, DEFAULT_COMPORT);
-        commBaudRate = preferences.getInt(COMM_BAUDRATE_KEY, DEFAULT_COMM_BAUDRATE);
-        commDataBits = preferences.getInt(COMM_DATABITS_KEY, DEFAULT_COMM_DATABITS);
-        commStopBits = preferences.getInt(COMM_STOPBITS_KEY, DEFAULT_COMM_STOPBITS);
-        commParity = preferences.getInt(COMM_PARITY_KEY, DEFAULT_COMM_PARITY);
+        commPort = prefs.get(COMPORT_KEY, DEFAULT_COMPORT);
+        commBaudRate = prefs.getInt(COMM_BAUDRATE_KEY, DEFAULT_COMM_BAUDRATE);
+        commDataBits = prefs.getInt(COMM_DATABITS_KEY, DEFAULT_COMM_DATABITS);
+        commStopBits = prefs.getInt(COMM_STOPBITS_KEY, DEFAULT_COMM_STOPBITS);
+        commParity = prefs.getInt(COMM_PARITY_KEY, DEFAULT_COMM_PARITY);
     }
     
     public static Configuration getConfiguration() {
@@ -94,8 +109,25 @@ public class Configuration {
     }
 
 
-    String getInitialDirectoryName() {
+    public String getInitialDirectoryName() {
         return initialDirectoryName;
+    }
+    
+    public void showConfigurationDialog() {
+        List<String> portList = SerialCommHandler.getAvailablePorts();
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setTitle("Inställningar");
+        Label label = new Label("Comport:");
+        
+        ChoiceBox cb = new ChoiceBox();
+        cb.setItems(FXCollections.observableList(portList));
+        HBox hBox = new HBox(label,cb);
+        BorderPane borderPane = new BorderPane( hBox );
+        
+        Scene scene = new Scene(borderPane);
+        stage.setScene(scene);
+        stage.show();
     }
     
     
