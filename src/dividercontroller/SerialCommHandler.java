@@ -19,14 +19,14 @@
 package dividercontroller;
 
 import java.text.DecimalFormat;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
+import jssc.SerialPortList;
 
 /**
  *
@@ -34,7 +34,7 @@ import jssc.SerialPortException;
  */
 public class SerialCommHandler implements SerialPortEventListener {
 
-    SerialPort serialPort;
+    private SerialPort serialPort;
     private final int SIZE_OF_RECEIVE_BUFFER = 500;
     private int numBytesInBuffer = 0;
 
@@ -46,7 +46,16 @@ public class SerialCommHandler implements SerialPortEventListener {
     private final byte[] receiveBuffer = new byte[SIZE_OF_RECEIVE_BUFFER];
     private final ConcurrentLinkedQueue<String> messageQueue = new ConcurrentLinkedQueue();
 
-    void sendProgram(String programToDownload) {
+    public static List<String> getAvailablePorts() {
+        String[] portArray = SerialPortList.getPortNames();
+        List<String> portList = new ArrayList<>();
+        for ( String s : portArray ) {
+            portList.add(s);
+        }
+        return portList;
+    }
+
+    public void sendProgram(String programToDownload) {
         try {
             serialPort.writeString(programToDownload);
             serialPort.writeByte(EOF_CHAR);

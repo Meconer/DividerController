@@ -27,10 +27,12 @@ import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Pane;
 
 /**
  *
@@ -41,6 +43,7 @@ public class FXMLDocumentController implements Initializable {
     private EventBus eventBus;
     private ArduinoDivider arduinoDivider;
 
+    
     @FXML
     private Label currPosLabel;
     @FXML
@@ -67,6 +70,10 @@ public class FXMLDocumentController implements Initializable {
     private Button stepPositiveButton;
     @FXML 
     private Button stepNegativeButton;
+    @FXML
+    private Pane mainWindow;
+    
+    private Parent root;
 
     public void setArduinoDivider(ArduinoDivider arduinoDivider) {
         this.arduinoDivider = arduinoDivider;
@@ -178,6 +185,11 @@ public class FXMLDocumentController implements Initializable {
         } else {
             showError("Syntaxfel. Kan inte sparas");
         }
+    }
+    
+    @FXML
+    private void onSettingsClicked() {
+        Configuration.getConfiguration().showConfigurationDialog();
     }
     
     @Subscribe
@@ -293,4 +305,9 @@ public class FXMLDocumentController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         disableAllControls();
     }
+
+    void setRoot(Parent root) {
+        this.root = root;
+    }
+
 }
