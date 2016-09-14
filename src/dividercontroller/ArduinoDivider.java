@@ -99,7 +99,7 @@ public class ArduinoDivider {
         this.eventBus = eventBus;
         eventBus.register(this);
     }
-    
+
     public void startDivider() {
         initMessageReceiverTask();
         initSerialSendTask();
@@ -151,47 +151,46 @@ public class ArduinoDivider {
 
     private void sendStopCommand() {
         commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.STOP_RUNNING));
-        Utils.debugOutput("Stop Running sent", 2 );
+        Utils.debugOutput("Stop Running sent", 2);
     }
 
     private void sendRunCommand() {
         commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.RUN_PROGRAM));
-        Utils.debugOutput("Run program sent", 2 );
+        Utils.debugOutput("Run program sent", 2);
     }
 
     private void sendGetStatusCommand() {
         commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.GET_STATUS));
-        Utils.debugOutput("Get status sent", 2 );
+        Utils.debugOutput("Get status sent", 2);
     }
 
     private void sendSetZeroPosition() {
         commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.ZERO_POSITION));
-        Utils.debugOutput("Set Zero sent", 2 );
+        Utils.debugOutput("Set Zero sent", 2);
     }
 
     private void sendPositionTo(double position) {
         CommandToDivider commandToDivider = new CommandToDivider(CommandToDivider.DividerCommand.POSITION_TO);
         commandToDivider.setValue(position);
         commandSendQueue.add(commandToDivider);
-        Utils.debugOutput("Position to sent" + position, 2 );
+        Utils.debugOutput("Position to sent" + position, 2);
     }
 
     private void sendStepNegativeCommand() {
         commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.STEP_MINUS));
-        Utils.debugOutput("Step negative sent", 2 );
+        Utils.debugOutput("Step negative sent", 2);
     }
 
     private void sendStepPositiveCommand() {
         commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.STEP_PLUS));
-        Utils.debugOutput("Step positive sent", 2 );
+        Utils.debugOutput("Step positive sent", 2);
     }
 
     private void sendUploadToPCCommand() {
         commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.UPLOAD_PROGRAM));
-        Utils.debugOutput("Upload sent", 2 );
+        Utils.debugOutput("Upload sent", 2);
         currentCommState = CommState.UploadProgramToPc;
     }
-
 
     private static final int LOOP_TIME = 500;
 
@@ -199,7 +198,6 @@ public class ArduinoDivider {
     private boolean stopSerialSendTask;
     private volatile boolean messageReceiverTaskStopped = false;
     private volatile boolean serialSendTaskStopped = false;
-
 
     private void initSerialSendTask() {
         serialSendTask = new SerialSendTask();
@@ -221,7 +219,7 @@ public class ArduinoDivider {
             long downloadTimeOutTime = 0;
             CommState lastCommState = CommState.Idle;
             while (!stopSerialSendTask) {
-                if ( currentCommState != lastCommState ) {
+                if (currentCommState != lastCommState) {
                     Utils.debugOutput("currentCommState :" + currentCommState, 2);
                     lastCommState = currentCommState;
                 }
@@ -244,7 +242,7 @@ public class ArduinoDivider {
                                 Utils.debugOutput("Sending position value " + command.getValue(), 2);
                                 serialCommHandler.sendPosition(command.getValue());
                             }
-                            if ( command.getCommand() == CommandToDivider.DividerCommand.DOWNLOAD_PROGRAM) {
+                            if (command.getCommand() == CommandToDivider.DividerCommand.DOWNLOAD_PROGRAM) {
                                 currentCommState = CommState.DownloadProgramToArduino;
                             }
                             command = null;
@@ -321,7 +319,7 @@ public class ArduinoDivider {
 
                 if (message != null) {
                     if (currentCommState == CommState.UploadProgramToPc) {
-                        Utils.debugOutput("Uploadmessage is : "+message, 2);
+                        Utils.debugOutput("Uploadmessage is : " + message, 2);
                         if (message.contains("Upload finished")) {
                             Utils.debugOutput("Previous message :" + previousMessage, 2);
                             sendMessageToGui(previousMessage);
@@ -329,8 +327,8 @@ public class ArduinoDivider {
                             currentCommState = CommState.Idle;
                         }
                         previousMessage = message;
-                    } else if ( currentCommState == CommState.DownloadProgramToArduino ) {
-                        if ( message.contains("Download finished")) {
+                    } else if (currentCommState == CommState.DownloadProgramToArduino) {
+                        if (message.contains("Download finished")) {
                             Utils.debugOutput(message, 2);
                             currentCommState = CommState.Idle;
                         }
@@ -374,10 +372,10 @@ public class ArduinoDivider {
                 try {
                     double position = getPositionFromMessage(message);
                     eventBus.post(new FromArduinoMessageEvent(FromArduinoMessageEvent.MessageType.GOT_POSITION, position));
-                } catch (NumberFormatException ex ) {
-                    
+                } catch (NumberFormatException ex) {
+
                 }
-                
+
             }
 
         }
@@ -389,18 +387,10 @@ public class ArduinoDivider {
         }
 
         private double getPositionFromMessage(String message) {
-                String angularValue = message.substring(1);
-                int decimalPosition = angularValue.indexOf(".");
-                if ( decimalPosition >= 0 ) {
-                    String intPart = angularValue.substring(0, decimalPosition);
-                    String decPart;
-                    if ( angularValue.length() > decimalPosition ) {
-                        decPart = angularValue.substring(decimalPosition + 1);
-                    } else decPart = "0";
-                    double position = Integer.parseInt(intPart) + Integer.parseInt(decPart) / 100.0;
-                    return position;
-                } else throw new NumberFormatException("Wrong number in string");
-    
+            String angularValue = message.substring(1);
+            double position = Double.parseDouble(angularValue);
+            return position;
+
         }
 
     }
@@ -416,11 +406,11 @@ public class ArduinoDivider {
         serialCommHandler.stopReader();
         stopMessageReceiverTask = true;
         stopSerialSendTask = true;
-        while ( !messageReceiverTaskStopped ) {
+        while (!messageReceiverTaskStopped) {
             // Wait for task stop;
         }
-            
-        while ( !serialSendTaskStopped ) {
+
+        while (!serialSendTaskStopped) {
             // Wait for task stop;
         }
     }
