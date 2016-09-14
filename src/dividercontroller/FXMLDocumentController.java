@@ -40,7 +40,7 @@ import javafx.scene.layout.Pane;
  */
 public class FXMLDocumentController implements Initializable {
 
-    private EventBus eventBus;
+    private final EventBus eventBus = ProjectEventBus.getInstance();
     private ArduinoDivider arduinoDivider;
 
     
@@ -296,13 +296,9 @@ public class FXMLDocumentController implements Initializable {
         stepPositiveButton.setDisable(true);
     }
 
-    void setEventBus(EventBus eventBus) {
-        this.eventBus = eventBus;
-        eventBus.register(this);
-    }
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        eventBus.register(this);
         disableAllControls();
     }
 

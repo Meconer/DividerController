@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.prefs.Preferences;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ChoiceBox;
@@ -57,7 +58,7 @@ public class Configuration {
     private final String initialDirectoryName = null;
 
     private final Preferences prefs = Preferences.userNodeForPackage(getClass());
-    private final String commPort;
+    private String commPort;
     private final int commBaudRate;
     private final int commDataBits;
     private final int commStopBits;
@@ -115,6 +116,13 @@ public class Configuration {
     
     public void showConfigurationDialog() {
         List<String> portList = SerialCommHandler.getAvailablePorts();
+        
+        int selectedIndex = -1;
+        int counter = 0;
+        for ( String s :portList ) {
+            if ( s.equals(commPort) ) selectedIndex = counter;
+            counter++;
+        }
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setTitle("Inställningar");
@@ -122,12 +130,22 @@ public class Configuration {
         
         ChoiceBox cb = new ChoiceBox();
         cb.setItems(FXCollections.observableList(portList));
+        if ( selectedIndex >= 0 ) cb.getSelectionModel().select(selectedIndex);
         HBox hBox = new HBox(label,cb);
+        hBox.setPadding(new Insets(20));
+        hBox.setSpacing(10);
+        
         BorderPane borderPane = new BorderPane( hBox );
         
         Scene scene = new Scene(borderPane);
         stage.setScene(scene);
-        stage.show();
+        stage.showAndWait();
+        String selected = (String) cb.getSelectionModel().getSelectedItem();
+        System.out.println("Selected " + selected);
+        if ( !selected.equals(commPort) ) {
+            commPort = selected;
+            
+        }
     }
     
     
