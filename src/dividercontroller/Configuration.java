@@ -144,7 +144,7 @@ public class Configuration {
         System.out.println("Selected " + selected);
         if ( !selected.equals(commPort) ) {
             commPort = selected;
-            
+            ProjectEventBus.getInstance().post(new ProgramEvent(ProgramEvent.Command.NEW_SERIAL_PORT_SELECTED, 0));
         }
     }
     

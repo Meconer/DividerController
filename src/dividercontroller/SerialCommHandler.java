@@ -18,6 +18,8 @@
  */
 package dividercontroller;
 
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +51,7 @@ public class SerialCommHandler implements SerialPortEventListener {
     public static List<String> getAvailablePorts() {
         String[] portArray = SerialPortList.getPortNames();
         List<String> portList = new ArrayList<>();
-        for ( String s : portArray ) {
+        for (String s : portArray) {
             portList.add(s);
         }
         return portList;
@@ -80,8 +82,10 @@ public class SerialCommHandler implements SerialPortEventListener {
     private CommStatus commStatus = CommStatus.DOWN;
 
     public SerialCommHandler() {
-
+        eventBus = ProjectEventBus.getInstance();
+        eventBus.register(this);
     }
+    private final EventBus eventBus;
 
     public void startReader() {         // Start serial communication thread
         // Init serial comm parameters.
@@ -93,7 +97,7 @@ public class SerialCommHandler implements SerialPortEventListener {
             Utils.debugOutput("SerialPortException " + ex.getMessage(), 3);
             Utils.debugOutput("while emptying buffer at start.", 3);
         }
-        
+
         initSerialReader();
     }
 
@@ -107,10 +111,20 @@ public class SerialCommHandler implements SerialPortEventListener {
                     comPortParams.getStopBits(),
                     comPortParams.getParity());
             commStatus = CommStatus.UP;
-            
+
         } catch (SerialPortException ex) {
             System.out.println(ex.getMessage());
             commStatus = CommStatus.DOWN;
+        }
+    }
+
+    @Subscribe
+    private void handleProgramEvents(ProgramEvent event) {
+        if (event.getCommand() == ProgramEvent.Command.NEW_SERIAL_PORT_SELECTED) {
+            
+            // Restart serial port reading with new port parameters.
+            stopReader();
+            startReader();
         }
     }
 
@@ -157,26 +171,26 @@ public class SerialCommHandler implements SerialPortEventListener {
                             }
                             messageQueue.add(sb.toString());
                             numBytesInBuffer = 0;
-                            Utils.debugOutput( "Message added: " + sb, 2);
+                            Utils.debugOutput("Message added: " + sb, 2);
                         }
                     } else {
                         receiveBuffer[numBytesInBuffer] = readByte;
                         numBytesInBuffer++;
-                        if ( numBytesInBuffer >= SIZE_OF_RECEIVE_BUFFER ) {
-                            Utils.debugOutput( "Buffer Overrun!!", 3);
+                        if (numBytesInBuffer >= SIZE_OF_RECEIVE_BUFFER) {
+                            Utils.debugOutput("Buffer Overrun!!", 3);
                             StringBuilder sb = new StringBuilder();
-                            for ( int i = 0 ; i < numBytesInBuffer; i++ ) {
-                                sb.append( (char)receiveBuffer[i] );
+                            for (int i = 0; i < numBytesInBuffer; i++) {
+                                sb.append((char) receiveBuffer[i]);
                             }
                             Utils.debugOutput(sb.toString(), 2);
-                            
-                            numBytesInBuffer=0;
+
+                            numBytesInBuffer = 0;
                         }
                     }
                 }
 
             } catch (SerialPortException ex) {
-                Utils.debugOutput(ex.getMessage(),3);
+                Utils.debugOutput(ex.getMessage(), 3);
             }
         }
     }
@@ -185,7 +199,7 @@ public class SerialCommHandler implements SerialPortEventListener {
         if (commStatus == CommStatus.UP) {
             try {
                 serialPort.writeByte((byte) commandChar);
-                Utils.debugOutput("Serial send command " +  commandChar, 2);
+                Utils.debugOutput("Serial send command " + commandChar, 2);
             } catch (SerialPortException ex) {
                 Utils.debugOutput("serialPort.writeString exception " + ex.getMessage(), 3);
             }
