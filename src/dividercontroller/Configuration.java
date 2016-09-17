@@ -20,17 +20,21 @@ package dividercontroller;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.prefs.Preferences;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -117,34 +121,17 @@ public class Configuration {
     public void showConfigurationDialog() {
         List<String> portList = SerialCommHandler.getAvailablePorts();
         
-        int selectedIndex = -1;
-        int counter = 0;
-        for ( String s :portList ) {
-            if ( s.equals(commPort) ) selectedIndex = counter;
-            counter++;
-        }
-        Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setTitle("Inställningar");
-        Label label = new Label("Comport:");
+        ChoiceDialog<String> cd = new ChoiceDialog<>(commPort, portList);
         
-        ChoiceBox cb = new ChoiceBox();
-        cb.setItems(FXCollections.observableList(portList));
-        if ( selectedIndex >= 0 ) cb.getSelectionModel().select(selectedIndex);
-        HBox hBox = new HBox(label,cb);
-        hBox.setPadding(new Insets(20));
-        hBox.setSpacing(10);
-        
-        BorderPane borderPane = new BorderPane( hBox );
-        
-        Scene scene = new Scene(borderPane);
-        stage.setScene(scene);
-        stage.showAndWait();
-        String selected = (String) cb.getSelectionModel().getSelectedItem();
-        System.out.println("Selected " + selected);
-        if ( !selected.equals(commPort) ) {
-            commPort = selected;
-            ProjectEventBus.getInstance().post(new ProgramEvent(ProgramEvent.Command.NEW_SERIAL_PORT_SELECTED, 0));
+        cd.setTitle("Inställningar");
+        cd.setContentText("Välj serieport");
+        Optional<String> result = cd.showAndWait();
+        if ( result.isPresent() ) {
+            String selected = result.get();
+            if ( !selected.equals(commPort) ) {
+                commPort = selected;
+                ProjectEventBus.getInstance().post(new ProgramEvent(ProgramEvent.Command.NEW_SERIAL_PORT_SELECTED, 0));
+            }
         }
     }
     
