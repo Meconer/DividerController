@@ -18,26 +18,15 @@
  */
 package dividercontroller;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.prefs.Preferences;
-import javafx.collections.FXCollections;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import javafx.scene.layout.GridPane;
 import jssc.SerialPort;
 
 /**
@@ -116,6 +105,25 @@ public class Configuration {
 
     public String getInitialDirectoryName() {
         return initialDirectoryName;
+    }
+    
+    
+    private Dialog<SettingsDialogData> buildSettingsDialog(SettingsDialogData currentData) {
+        Dialog<SettingsDialogData> settingsDialog = new Dialog<>();
+        settingsDialog.setTitle("Inställningar");
+        Label label1 = new Label("Serieport:");
+        Label label2 = new Label("Starkatalog:");
+        List<String> portList = SerialCommHandler.getAvailablePorts();
+        ChoiceBox<String> cbCommPort = new ChoiceBox<>();
+        
+        
+        
+        TextField tfDefaultPath = new TextField(currentData.defaultPath);
+        GridPane gp = new GridPane();
+        gp.add(label1, 0, 0 );
+        gp.add(label2, 0, 1 );
+        gp.add(tfDefaultPath, 1, 1);
+        return settingsDialog;
     }
     
     public void showConfigurationDialog() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Mats Andersson <mats.andersson@mecona.se>.
+ * Copyright (C) 2016 matsa.
  *
  * This code is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,23 +18,11 @@
  */
 package dividercontroller;
 
-import java.net.URL;
-import java.util.ResourceBundle;
-import javafx.fxml.Initializable;
-
 /**
- * FXML Controller class
  *
- * @author Mats Andersson <mats.andersson@mecona.se>
+ * @author matsa
  */
-public class ConfigurationDialogController implements Initializable {
-
-    /**
-     * Initializes the controller class.
-     */
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        // TODO
-    }    
-    
+public class SettingsDialogData {
+    String defaultPath;
+    String comPort;
 }
