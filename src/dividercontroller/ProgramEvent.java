@@ -25,7 +25,8 @@ package dividercontroller;
 class ProgramEvent {
 
     public enum Command {
-        NEW_SERIAL_PORT_SELECTED
+        NEW_SERIAL_PORT_SELECTED,
+        NEW_INITIAL_PATH_SELECTED
     }
     
     private Command command;

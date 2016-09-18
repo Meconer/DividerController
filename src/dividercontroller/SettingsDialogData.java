@@ -23,6 +23,11 @@ package dividercontroller;
  * @author matsa
  */
 public class SettingsDialogData {
-    String defaultPath;
-    String comPort;
+    String initialPath;
+    String commPort;
+
+    SettingsDialogData(String commPort, String initialPath) {
+        this.initialPath = initialPath;
+        this.commPort = commPort;
+    }
 }

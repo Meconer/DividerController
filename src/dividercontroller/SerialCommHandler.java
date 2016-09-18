@@ -20,10 +20,14 @@ package dividercontroller;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.sun.javafx.collections.ImmutableObservableList;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Observable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import javafx.collections.ObservableList;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -51,9 +55,7 @@ public class SerialCommHandler implements SerialPortEventListener {
     public static List<String> getAvailablePorts() {
         String[] portArray = SerialPortList.getPortNames();
         List<String> portList = new ArrayList<>();
-        for (String s : portArray) {
-            portList.add(s);
-        }
+        portList.addAll(Arrays.asList(portArray));
         return portList;
     }
 
