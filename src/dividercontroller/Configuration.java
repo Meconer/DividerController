@@ -48,7 +48,7 @@ public class Configuration {
 
     public final static int DEBUG_LEVEL = 2;
     private final String CONFIG_NAME = "se.mecona.dividerController";
-    private final String DEFAULT_COMPORT = "COM3";
+    private final String DEFAULT_COMPORT = "/dev/ttyACM0";
     private final String COMPORT_KEY = "CommPort";
     private final String INITIAL_PATH_KEY = "InitialPath";
     

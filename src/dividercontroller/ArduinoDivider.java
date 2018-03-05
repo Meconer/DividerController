@@ -316,6 +316,7 @@ public class ArduinoDivider {
             String previousMessage = null;
             while (!stopMessageReceiverTask) {
                 String message = serialCommHandler.getMessageFromReceiveQueue();
+                eventBus.post( new ArduinoStatusMessageEvent(message));
 
                 if (message != null) {
                     if (currentCommState == CommState.UploadProgramToPc) {
@@ -350,6 +351,7 @@ public class ArduinoDivider {
 
         private void checkMessage(String message) {
             //System.out.println("CheckMessage :" + message);
+           
             if (message.equals("R")) {
                 // Response to R command. Throw away and set status to running
                 dividerStatus = DividerStatus.RunningProgram;

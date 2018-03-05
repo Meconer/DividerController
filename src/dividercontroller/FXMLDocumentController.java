@@ -28,6 +28,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -46,6 +47,8 @@ public class FXMLDocumentController implements Initializable {
     
     @FXML
     private Label currPosLabel;
+    @FXML
+    private Label statusLabel;
     @FXML
     private Button setZeroBtn;
     @FXML
@@ -169,6 +172,15 @@ public class FXMLDocumentController implements Initializable {
     
     @FXML
     private void onOpenButtonClicked() {
+        actionOpenProgram();
+    }
+    
+    @FXML
+    private void onMenuOpenClicked() {
+        actionOpenProgram();
+    }
+
+    private void actionOpenProgram() {
         DividerProgram dividerProgram = new DividerProgram();
         dividerProgram.openFromDisc();
         if ( dividerProgram.isSyntaxOk() ) {
@@ -179,6 +191,16 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     private void onSaveButtonClicked() {
+        actionSaveProgram();
+    }
+
+    @FXML
+    private void onMenuSaveClicked() {
+        actionSaveProgram();
+    }
+
+    
+    private void actionSaveProgram() {
         DividerProgram dividerProgram = new DividerProgram(programTextArea.getText());
         if ( dividerProgram.isSyntaxOk() ) {
             dividerProgram.saveToDisc();
@@ -188,8 +210,18 @@ public class FXMLDocumentController implements Initializable {
     }
     
     @FXML
-    private void onSettingsClicked() {
+    private void onMenuSettingsClicked() {
         Configuration.getConfiguration().showConfigurationDialog();
+    }
+    
+    @FXML
+    private void onMenuExitClicked() {
+        System.exit(0);
+    }
+    
+    @FXML
+    private void onMenuAboutClicked() {
+        showAboutBox();
     }
     
     @Subscribe
@@ -246,6 +278,13 @@ public class FXMLDocumentController implements Initializable {
     private void handleUploadedProgramMessage( UploadedProgramMessage message ) {
         programTextArea.clear();
         programTextArea.setText(message.getCleanedUpText());
+    }
+    
+    @Subscribe
+    private void handleArduinoStatusMessageEvent( ArduinoStatusMessageEvent asmEvent ) {
+        Platform.runLater( () -> {
+            statusLabel.setText(asmEvent.getStatusMessage());
+        });
     }
 
     void stopThreads() {
@@ -304,6 +343,13 @@ public class FXMLDocumentController implements Initializable {
 
     void setRoot(Parent root) {
         this.root = root;
+    }
+
+    private void showAboutBox() {
+        Alert aboutBox = new Alert(Alert.AlertType.INFORMATION);
+        aboutBox.setHeaderText("Om");
+        aboutBox.setContentText("Delningsapparatcontroller\nVersion 0.1");
+        aboutBox.showAndWait();
     }
 
 }

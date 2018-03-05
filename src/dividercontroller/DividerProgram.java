@@ -49,7 +49,7 @@ class DividerProgram {
         program = "";
     }
 
-    private static final String SYNTAX_CHECK_REGEX = "^((B-*\\d+\\.?\\d*)|(M\\d)|(P-*\\d+\\.?\\d*,-*\\d+\\.?\\d*)|R)$";
+    private static final String SYNTAX_CHECK_REGEX = "^((B-*\\d+\\.?\\d*)|(G\\d+)|(D\\d+)|(F\\d+)|(M\\d+)|(P-*\\d+\\.?\\d*,-*\\d+\\.?\\d*)|R|R[\\+-])$";
 
     public boolean isSyntaxOk() {
         boolean syntaxIsOk = true;
