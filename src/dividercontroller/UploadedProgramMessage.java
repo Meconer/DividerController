@@ -40,7 +40,7 @@ class UploadedProgramMessage {
 
     String getCleanedUpText() {
         text = text.replaceAll( END_TEXT, "");
-        text = text.replaceAll("([MBPR][-\\d\\.]*(,[-\\d\\.]+)?)", "$1\n");
+        text = text.replaceAll("([MDGBPRF][-\\d\\.]*(,[-\\d\\.]+)?)", "$1\n");
         return text;
     }
     

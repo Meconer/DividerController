@@ -283,7 +283,10 @@ public class FXMLDocumentController implements Initializable {
     @Subscribe
     private void handleArduinoStatusMessageEvent( ArduinoStatusMessageEvent asmEvent ) {
         Platform.runLater( () -> {
-            statusLabel.setText(asmEvent.getStatusMessage());
+            String message = asmEvent.getStatusMessage();
+            if ( message!=null ) {
+                statusLabel.setText(asmEvent.getStatusMessage());
+            }
         });
     }
 

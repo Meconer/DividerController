@@ -31,28 +31,32 @@ import javafx.application.Platform;
  * This class handles the arduino divider unit. It has different states as
  * follows
  *
- * State 0 : Waiting for commands from pc State 1 : Loading divider program from
- * pc State 2 : Sending divider program to pc State 3 : Running program
+ * State 0 : Waiting for commands from pc 
+ * State 1 : Loading divider program from pc
+ * State 2 : Sending divider program to pc 
+ * State 3 : Running program
  *
  * For commands executed during state 0 the process is as following
  *
  * Send the command and possible values to Arduino
  *
- * The possible commands are: D Download from PC. D followed by the program and
- * then eof (27) U Upload to PC. Sends the program followed by eof and "Upload
- * finished" R Start automatic execution of program. Sends "R" + Jog 1 step
- * positive. Responds with "+" and "A" followed by the angle - Jog 1 step
- * negative Responds with "-" and "A" followed by the angle P angle Positions to
- * angle. Responds with "Pangle" and then "Aangle" ? Request current position.
- * Responds with "Aangle" S Request current status (0 or 3). Response "S0" or
- * "S3" Z Set current position to zero. Response "Z" and then "A0.00" V Request
- * firmware version. Sends a version string.
+ * The possible commands are: 
+ * D Download from PC. D followed by the program and then eof (27) 
+ * U Upload to PC. Sends the program followed by eof and "Upload finished" 
+ * R Start automatic execution of program. Sends "R" 
+ * + Jog 1 step positive. Responds with "+" and "A" followed by the angle 
+ * - Jog 1 step negative. Responds with "-" and "A" followed by the angle 
+ * P angle Positions to angle. Responds with "Pangle" and then "Aangle" 
+ * ? Request current position.  * Responds with "Aangle" 
+ * S Request current status (0 or 3). Response "S0" or "S3" 
+ * Z Set current position to zero. Response "Z" and then "A0.00" 
+ * V Request firmware version. Sends a version string.
  *
  * All the commands is acknowledged with the command as above and all responses
  * is ended with an ETB character (23);
  *
- * This is handled in this class with a state machine that has different states
- * as follows.
+ * This is handled in this class with a state machine
+ * 
  */
 public class ArduinoDivider {
 
@@ -244,12 +248,14 @@ public class ArduinoDivider {
                             }
                             if (command.getCommand() == CommandToDivider.DividerCommand.DOWNLOAD_PROGRAM) {
                                 currentCommState = CommState.DownloadProgramToArduino;
+                                downloadTimeOutTime = now + 5000;
                             }
                             command = null;
                         } else if (now > nextTimeToAskForAngle) {
                             serialCommHandler.sendCommand(new CommandToDivider(CommandToDivider.DividerCommand.GET_ANGLE).getCommandChar());
                             nextTimeToAskForAngle = now + 10000;
                         }
+                        numTimesInDownloadState = 0;
                         break;
 
                     case UploadProgramToPc:
