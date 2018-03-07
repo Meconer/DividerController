@@ -32,6 +32,8 @@ public class CommandToDivider {
         STEP_PLUS('+'),
         STEP_MINUS('-'),
         POSITION_TO('P'),
+        SET_INCREMENTAL('I'),
+        SET_ABSOLUTE('A'),
         ZERO_POSITION('Z'),
         GET_STATUS('S'),
         GET_ANGLE('?'),

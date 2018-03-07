@@ -30,6 +30,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -51,6 +52,8 @@ public class FXMLDocumentController implements Initializable {
     private Label statusLabel;
     @FXML
     private Button setZeroBtn;
+    @FXML
+    private CheckBox incCheckBox;
     @FXML
     private TextArea programTextArea;
     @FXML
@@ -126,6 +129,18 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private void onSetZeroBtnClicked() {
         ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.ZERO_POSITION, 0);
+        eventBus.post(event);
+    }
+    
+    @FXML
+    private void onIncCheckBoxSwitched() {
+        double incIsOn;
+        if (incCheckBox.isSelected()) {
+            incIsOn = 1;
+        } else {
+            incIsOn = 0;
+        }
+        ToArduinoMessageEvent event = new ToArduinoMessageEvent(ToArduinoMessageEvent.Command.SET_INC_MODE, incIsOn);
         eventBus.post(event);
     }
 
@@ -268,6 +283,18 @@ public class FXMLDocumentController implements Initializable {
                     currPosLabel.setText(positionText);
                 });
                 break;
+                
+            case INCREMENTAL_IS_OFF:
+                Platform.runLater(() -> {
+                    incCheckBox.setSelected(false);
+                });
+                break;
+
+            case INCREMENTAL_IS_ON:
+                Platform.runLater(() -> {
+                    incCheckBox.setSelected(true);
+                });
+                break;
 
             default:
                 break;
@@ -303,6 +330,7 @@ public class FXMLDocumentController implements Initializable {
         setZeroBtn.setDisable(true);
         stepPositiveButton.setDisable(true);
         stepNegativeButton.setDisable(true);
+        incCheckBox.setDisable(true);
     }
 
     private void setControlsForHaltedProgram() {
@@ -314,6 +342,7 @@ public class FXMLDocumentController implements Initializable {
         setZeroBtn.setDisable(false);
         stepPositiveButton.setDisable(false);
         stepNegativeButton.setDisable(false);
+        incCheckBox.setDisable(false);
     }
 
     private void enableAllControls() {
@@ -325,6 +354,7 @@ public class FXMLDocumentController implements Initializable {
         setZeroBtn.setDisable(false);
         stepNegativeButton.setDisable(false);
         stepNegativeButton.setDisable(false);
+        incCheckBox.setDisable(false);
     }
 
     private void disableAllControls() {
@@ -336,6 +366,7 @@ public class FXMLDocumentController implements Initializable {
         setZeroBtn.setDisable(true);
         stepNegativeButton.setDisable(true);
         stepPositiveButton.setDisable(true);
+        incCheckBox.setDisable(true);
     }
 
     @Override

@@ -140,6 +140,9 @@ public class ArduinoDivider {
             case POSITION_TO:
                 sendPositionTo(event.getValue());
                 break;
+            case SET_INC_MODE:
+                sendSetIncremental(event.getValue());
+                break;
             case STEP_NEGATIVE:
                 sendStepNegativeCommand();
                 break;
@@ -173,6 +176,14 @@ public class ArduinoDivider {
         Utils.debugOutput("Set Zero sent", 2);
     }
 
+    private void sendSetIncremental(double value) {
+        if ( value == 0 ) {
+            commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.SET_ABSOLUTE));
+        } else {
+            commandSendQueue.add(new CommandToDivider(CommandToDivider.DividerCommand.SET_INCREMENTAL));
+        }
+    }
+    
     private void sendPositionTo(double position) {
         CommandToDivider commandToDivider = new CommandToDivider(CommandToDivider.DividerCommand.POSITION_TO);
         commandToDivider.setValue(position);
@@ -214,6 +225,7 @@ public class ArduinoDivider {
     private class SerialSendTask implements Runnable {
 
         private long nextTimeToAskForAngle;
+        private long nextTimeToAskForStatus;
 
         @Override
         public void run() {
@@ -232,7 +244,8 @@ public class ArduinoDivider {
                     case StartingUp:
                         if (now > timeToGetFirstStatus) {
                             currentCommState = CommState.Idle;
-                            nextTimeToAskForAngle = now + 1000;
+                            nextTimeToAskForAngle = now + 3000;
+                            nextTimeToAskForStatus = now + 1000;
                         }
                         break;
 
@@ -254,6 +267,9 @@ public class ArduinoDivider {
                         } else if (now > nextTimeToAskForAngle) {
                             serialCommHandler.sendCommand(new CommandToDivider(CommandToDivider.DividerCommand.GET_ANGLE).getCommandChar());
                             nextTimeToAskForAngle = now + 10000;
+                        } else if (now > nextTimeToAskForStatus) {
+                            serialCommHandler.sendCommand(new CommandToDivider(CommandToDivider.DividerCommand.GET_STATUS).getCommandChar());
+                            nextTimeToAskForStatus = now + 20000;
                         }
                         numTimesInDownloadState = 0;
                         break;
@@ -373,6 +389,8 @@ public class ArduinoDivider {
                     if (message.endsWith("0")) {
                         eventBus.post(new FromArduinoMessageEvent(FromArduinoMessageEvent.MessageType.PROGRAM_IS_HALTED, 0));
                     } else if (message.endsWith("3")) {
+                        dividerStatus = DividerStatus.RunningProgram;
+                        Utils.debugOutput("dividerStatus = Running", 2);
                         eventBus.post(new FromArduinoMessageEvent(FromArduinoMessageEvent.MessageType.PROGRAM_IS_RUNNING, 0));
                     }
                 }
@@ -384,6 +402,14 @@ public class ArduinoDivider {
 
                 }
 
+            } else if ( message.startsWith("I")) {
+                if (message.length() == 2) {
+                    if (message.endsWith("0")) {
+                        eventBus.post(new FromArduinoMessageEvent(FromArduinoMessageEvent.MessageType.INCREMENTAL_IS_OFF, 0));
+                    } else if (message.endsWith("1")) {
+                        eventBus.post(new FromArduinoMessageEvent(FromArduinoMessageEvent.MessageType.INCREMENTAL_IS_ON, 0));
+                    }
+                }
             }
 
         }

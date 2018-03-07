@@ -41,6 +41,8 @@ class FromArduinoMessageEvent {
         ZERO_POSITION,
         GET_VERSION,
         COMMUNICATION_STARTED,
+        INCREMENTAL_IS_OFF,
+        INCREMENTAL_IS_ON
     }
     
     private MessageType messageType;

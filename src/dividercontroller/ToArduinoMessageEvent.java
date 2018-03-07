@@ -31,6 +31,7 @@ class ToArduinoMessageEvent {
         QUIT_PROGRAM,
         STEP_POSITIVE,
         STEP_NEGATIVE,
+        SET_INC_MODE,
         POSITION_TO,
         GET_CURRENT_POSITION,
         GET_STATUS,
